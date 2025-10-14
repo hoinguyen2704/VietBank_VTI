@@ -1,0 +1,58 @@
+1. Tổng quan yêu cầu					
+	Dựa trên kiến thức đã học về spring framework				
+	Xây dựng ứng dụng "VietBank Digital-Ngân hàng số Việt" phía backend				
+	Ứng dụng nhằm cung cấp giải pháp số hóa các dịch vụ ngân hàng cơ bản cho cả khách hàng và nhân viên ngân hàng.				
+	Đối tượng sử dụng				
+		- Khách hàng: Quản lý tài khoản cá nhân, thực hiện giao dịch			
+		- Nhân viên ngân hàng: Hỗ trợ khách hàng, quản lý và giám sát hệ thống			
+					
+2.Tính năng chính					
+	2.1.Cho Khách hàng(Role=CUSTOMER):				
+		- đăng nhập tài khoản(ưu tiên làm sau)			
+			+ Đăng nhập bằng: số điện thoại/ mật khẩu		
+		- Quản lý thông tin cá nhân			
+			+ Xem chi tiết thông tin cá nhân		
+			+ Cập nhật thông tin cá nhân		
+		- Xem số dư và thông tin tài khoản(tham khảo các App ngân hàng)			
+		- Chuyển khoản			
+					
+	2.2.Cho Nhân viên Ngân hàng(Role=STAFF):				
+		- đăng nhập tài khoản(ưu tiên làm sau)			
+		- Quản lý danh sách khách hàng			
+			+ Tìm kiếm Khách hàng theo tên, số điện thoại và số căn cước công dân.		
+			+ Thêm khách hàng		
+			+ Sửa thông tin khách hàng		
+			+ Xóa khách hàng(xóa mềm)		
+			+ Xem chi tiết thông tin khách hàng		
+			+ Quản lý danh sách tài khoản ngân hàng		
+				+ Thêm mới tài khoản	
+				+ Cập nhật tài khoản	
+					+ Nộp tiền vào cho tài khoản
+				+ Vô hiệu hóa tài khoản	
+	2.3 phân quyền truy cập API cho Khách hàng và Nhân viên Ngân hàng( ưu tiêu sau)				
+3. Công nghệ					
+	- Backend: Java JDK 25, Spring Boot 3.5.5, Spring Security, Spring Data JPA				
+	- Database: MySQL				
+	- Authentication: JWT Token				
+					
+4. Hãy thực hiện theo các bước sau					
+	Bước 4.1. Tạo Database				
+		- Xác định các bảng, các cột và các ràng buộc cần thiết			
+		- Chú ý: Chỉ định nghĩa các bảng chính			
+	Bước 4.2. Xác định tất cả các API cần phát triển dựa vào các chức năng trên				
+	Bước 4.3. Tạo project base dựa vào kiến thức đã học, yêu cầu có các thành phần và thư viện sau:				
+		- Java JDK 25, Spring Boot 3.5.5			
+		- Lombox			
+		- Spring data JPA			
+			+ Specifications(sử dụng để lọc data nếu cần)		
+		- Đa ngôn ngữ			
+		- Validate(dùng annotation có sẵn + custom)			
+		- Các phương thức xử lý ngoại lệ			
+		...			
+	Bước 4.4: Code các API được liệt kê ở Bước 4.2 sử dụng project base ở bước 4.3				
+		- Định nghĩa các thông tin cho các API bao gồm:			
+			+ phương thức(GET/POST/PUT/DELETE)		
+			+ Đường dẫn của API. ví dụ: api/v1/accounts/		
+			+ Các tham số đầu vào của API		
+			+ Kết quả trả về của API		
+		- Chạy các API và chụp lại input và output			
