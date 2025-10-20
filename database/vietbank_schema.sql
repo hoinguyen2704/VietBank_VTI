@@ -2,6 +2,7 @@
 -- VIETBANK DATABASE SCHEMA
 -- Ngân hàng số Việt - Database Design
 -- =============================================
+-- mysql --max_allowed_packet=512M -u root -p vietbank < data_sieu_cap_kinh_khung_tom.sql
 
 -- Tạo database
 DROP DATABASE IF EXISTS vietbank;
@@ -42,7 +43,7 @@ CREATE TABLE customers (
     email VARCHAR(100),
     date_of_birth DATE,
     gender ENUM('MALE', 'FEMALE', 'OTHER'),
-    citizen_id VARCHAR(20) UNIQUE,
+    citizen_id VARCHAR(20) UNIQUE, -- Mã căn cước công dân
     `address` TEXT,
     is_deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -141,7 +142,6 @@ CREATE TABLE accounts (
     FOREIGN KEY (customer_id) REFERENCES customers(id),
     FOREIGN KEY (account_type_id) REFERENCES account_types(id)
 );
-
 -- =============================================
 -- 9. BẢNG TRANSFERS - Giao dịch chuyển khoản
 -- =============================================
@@ -152,7 +152,7 @@ CREATE TABLE transfers (
     to_account_id INT NOT NULL,
     amount DECIMAL(15,2) NOT NULL CHECK (amount > 0),
     fee DECIMAL(15,2) DEFAULT 0.00 CHECK (fee >= 0),
-    total_amount DECIMAL(15,2) NOT NULL CHECK (total_amount > 0),
+    total_amount DECIMAL(17,2) NOT NULL CHECK (total_amount > 0),
     `description` TEXT,
     `status` ENUM('PENDING', 'COMPLETED', 'FAILED', 'CANCELLED') DEFAULT 'PENDING',
     created_by INT,
@@ -269,13 +269,43 @@ INSERT INTO users (phone_number, password, role_id) VALUES
 ('0900000002', '123456', (SELECT id FROM roles WHERE name = 'CUSTOMER')),
 ('0900000003', '123456', (SELECT id FROM roles WHERE name = 'STAFF')),
 ('0900000004', '123456', (SELECT id FROM roles WHERE name = 'STAFF')), -- Thêm nhân viên làm trưởng phòng
-('0900000009', '123456', (SELECT id FROM roles WHERE name = 'ADMIN'));
+('0900000009', '123456', (SELECT id FROM roles WHERE name = 'ADMIN')),
+('0900000005', '123456', (SELECT id FROM roles WHERE name = 'CUSTOMER')),
+('0900000006', '123456', (SELECT id FROM roles WHERE name = 'CUSTOMER')),
+('0900000007', '123456', (SELECT id FROM roles WHERE name = 'STAFF')),
+('0900000008', '123456', (SELECT id FROM roles WHERE name = 'STAFF')),
+('0900000010', '123456', (SELECT id FROM roles WHERE name = 'CUSTOMER')),
+('0900000011', '123456', (SELECT id FROM roles WHERE name = 'CUSTOMER')),
+('0900000012', '123456', (SELECT id FROM roles WHERE name = 'CUSTOMER')),
+('0900000013', '123456', (SELECT id FROM roles WHERE name = 'CUSTOMER')),
+('0900000014', '123456', (SELECT id FROM roles WHERE name = 'CUSTOMER')),
+('0900000015', '123456', (SELECT id FROM roles WHERE name = 'STAFF')),
+('0900000016', '123456', (SELECT id FROM roles WHERE name = 'STAFF')),
+-- ('0900002100', '123456', (SELECT id FROM roles WHERE name = 'STAFF')),
+-- ('0900002101', '123456', (SELECT id FROM roles WHERE name = 'STAFF')),
+-- ('0900002102', '123456', (SELECT id FROM roles WHERE name = 'STAFF')),
+-- ('0900002103', '123456', (SELECT id FROM roles WHERE name = 'STAFF')),
+-- ('0900002104', '123456', (SELECT id FROM roles WHERE name = 'STAFF')),
+-- ('0900002105', '123456', (SELECT id FROM roles WHERE name = 'STAFF')),
+-- ('0900002106', '123456', (SELECT id FROM roles WHERE name = 'STAFF')),
+-- ('0900002107', '123456', (SELECT id FROM roles WHERE name = 'STAFF')),
+-- ('0900002108', '123456', (SELECT id FROM roles WHERE name = 'STAFF')),
+-- ('0900002109', '123456', (SELECT id FROM roles WHERE name = 'STAFF')),
+-- ('0900002110', '123456', (SELECT id FROM roles WHERE name = 'STAFF')),
+('0900000017', '123456', (SELECT id FROM roles WHERE name = 'STAFF'));
 
 -- Thêm khách hàng mẫu (tham chiếu users)
 INSERT INTO customers (user_id, full_name, email, date_of_birth, gender, citizen_id, address)
 VALUES
-((SELECT id FROM users WHERE phone_number = '0900000001'), 'Nguyễn Văn A', 'a.nguyen@example.com', '1990-05-20', 'MALE', '012345678901', '123 Đường A, Quận 1, TP.HCM'),
-((SELECT id FROM users WHERE phone_number = '0900000002'), 'Trần Thị B', 'b.tran@example.com', '1992-08-15', 'FEMALE', '012345678902', '456 Đường B, Quận 3, TP.HCM');
+((SELECT id FROM users WHERE phone_number = '0900000001'), 'Nguyễn Văn A', 'a.nguyen@example.com', '1990-05-20', 'MALE', '012345677901', '123 Đường A, Quận 1, TP.HCM'),
+((SELECT id FROM users WHERE phone_number = '0900000002'), 'Trần Thị B', 'b.tran@example.com', '1992-08-15', 'FEMALE', '012345677902', '456 Đường B, Quận 3, TP.HCM'),
+((SELECT id FROM users WHERE phone_number = '0900000005'), 'Phan Văn E', 'e.phan@example.com', '1988-03-12', 'MALE', '012345677903', '789 Đường C, Quận 5, TP.HCM'),
+((SELECT id FROM users WHERE phone_number = '0900000006'), 'Đỗ Thị F', 'f.do@example.com', '1995-10-25', 'FEMALE', '012345677904', '321 Đường D, Quận 7, TP.HCM'),
+((SELECT id FROM users WHERE phone_number = '0900000010'), 'Phạm Văn J', 'j.pham@example.com', '1993-06-30', 'MALE', '012345677906', '45 Đường F, Quận 10, TP.HCM'),
+((SELECT id FROM users WHERE phone_number = '0900000011'), 'Trần Minh K', 'k.tran@example.com', '1999-04-01', 'MALE', '012345677907', '89 Đường G, Quận Bình Thạnh, TP.HCM'),
+((SELECT id FROM users WHERE phone_number = '0900000012'), 'Hoàng Thị L', 'l.hoang@example.com', '1987-01-17', 'FEMALE', '012345677908', '231 Đường H, Quận Phú Nhuận, TP.HCM'),
+((SELECT id FROM users WHERE phone_number = '0900000013'), 'Vũ Đức M', 'm.vu@example.com', '1995-02-28', 'MALE', '012345677909', '102 Đường I, TP.Thủ Đức'),
+((SELECT id FROM users WHERE phone_number = '0900000014'), 'Đinh Lan N', 'n.dinh@example.com', '1991-09-19', 'FEMALE', '012345677910', '567 Đường J, Quận 4, TP.HCM');
 
 -- Thêm nhân viên mẫu (tham chiếu users)
 INSERT INTO staff (user_id, full_name, email, employee_code, department_id, position_id)
@@ -287,8 +317,39 @@ VALUES
 -- Trưởng phòng giao dịch
 ((SELECT id FROM users WHERE phone_number = '0900000004'), 'Phạm Thị D', 'd.pham@example.com', 'EMP002', 
  (SELECT id FROM departments WHERE name = 'Giao dịch'), 
- (SELECT id FROM positions WHERE name = 'Trưởng phòng giao dịch'));
+ (SELECT id FROM positions WHERE name = 'Trưởng phòng giao dịch')),
+-- Nhân viên tín dụng
+((SELECT id FROM users WHERE phone_number = '0900000007'), 'Vũ Minh G', 'g.vu@example.com', 'EMP003',
+ (SELECT id FROM departments WHERE name = 'Tín dụng'),
+ (SELECT id FROM positions WHERE name = 'Chuyên viên tín dụng')),
+-- Nhân viên IT
+((SELECT id FROM users WHERE phone_number = '0900000008'), 'Hoàng Lan H', 'h.hoang@example.com', 'EMP004',
+ (SELECT id FROM departments WHERE name = 'IT'),
+ (SELECT id FROM positions WHERE name = 'Lập trình viên')),
+-- chuyên viên tin dung
+((SELECT id FROM users WHERE phone_number = '0900000015'), 'Trịnh Văn O', 'o.trinh@example.com', 'EMP005',
+ (SELECT id FROM departments WHERE name = 'Tín dụng'),
+ (SELECT id FROM positions WHERE name = 'Chuyên viên tín dụng')),
+-- kế toán viên
+((SELECT id FROM users WHERE phone_number = '0900000016'), 'Bùi Thanh P', 'p.bui@example.com', 'EMP006',
+ (SELECT id FROM departments WHERE name = 'Kế toán'),
+ (SELECT id FROM positions WHERE name = 'Kế toán viên')),
+-- trưởng phòng nhân sự
+((SELECT id FROM users WHERE phone_number = '0900000017'), 'Lâm Nhật Q', 'q.lam@example.com', 'EMP007',
+ (SELECT id FROM departments WHERE name = 'Nhân sự'),
+ (SELECT id FROM positions WHERE name = 'Chuyên viên nhân sự'));
 
+-- ((SELECT id FROM users WHERE phone_number = '0900002100'), 'Bà Ngọc Dương', 'vujane@example.net', 'EMP100', (SELECT id FROM departments WHERE name = 'Tín dụng'), (SELECT id FROM positions WHERE name = 'Chuyên viên tín dụng')),
+-- ((SELECT id FROM users WHERE phone_number = '0900002101'), 'Bảo Mai', 'wbui@example.org', 'EMP101', (SELECT id FROM departments WHERE name = 'Tín dụng'), (SELECT id FROM positions WHERE name = 'Chuyên viên tín dụng')),
+-- ((SELECT id FROM users WHERE phone_number = '0900002102'), 'Yến Phạm', 'nguyenjohn@example.com', 'EMP102', (SELECT id FROM departments WHERE name = 'Giao dịch'), (SELECT id FROM positions WHERE name = 'Giao dịch viên')),
+-- ((SELECT id FROM users WHERE phone_number = '0900002103'), 'Quang Hữu Trần', 'nguyenjohn@example.com', 'EMP103', (SELECT id FROM departments WHERE name = 'Nhân sự'), (SELECT id FROM positions WHERE name = 'Chuyên viên nhân sự')),
+-- ((SELECT id FROM users WHERE phone_number = '0900002104'), 'Châu Thị Đặng', 'jane20@example.com', 'EMP104', (SELECT id FROM departments WHERE name = 'Kế toán'), (SELECT id FROM positions WHERE name = 'Kế toán viên')),
+-- ((SELECT id FROM users WHERE phone_number = '0900002105'), 'Thảo Bùi', 'ddang@example.com', 'EMP105', (SELECT id FROM departments WHERE name = 'Nhân sự'), (SELECT id FROM positions WHERE name = 'Chuyên viên nhân sự')),
+-- ((SELECT id FROM users WHERE phone_number = '0900002106'), 'Bảo Hữu Trần', 'johnmai@example.com', 'EMP106', (SELECT id FROM departments WHERE name = 'IT'), (SELECT id FROM positions WHERE name = 'Lập trình viên')),
+-- ((SELECT id FROM users WHERE phone_number = '0900002107'), 'Vân Phạm', 'tranjane@example.net', 'EMP107', (SELECT id FROM departments WHERE name = 'Tín dụng'), (SELECT id FROM positions WHERE name = 'Chuyên viên tín dụng')),
+-- ((SELECT id FROM users WHERE phone_number = '0900002108'), 'Quý cô Linh Hoàng', 'john85@example.org', 'EMP108', (SELECT id FROM departments WHERE name = 'Giao dịch'), (SELECT id FROM positions WHERE name = 'Giao dịch viên')),
+-- ((SELECT id FROM users WHERE phone_number = '0900002109'), 'Cô Vi Hoàng', 'bnguyen@example.com', 'EMP109', (SELECT id FROM departments WHERE name = 'Nhân sự'), (SELECT id FROM positions WHERE name = 'Chuyên viên nhân sự')),
+-- ((SELECT id FROM users WHERE phone_number = '0900002110'), 'Bà Kim Phạm', 'johnle@example.com', 'EMP110', (SELECT id FROM departments WHERE name = 'Kế toán'), (SELECT id FROM positions WHERE name = 'Kế toán viên'));
 -- -- Cập nhật phòng ban để có manager
 -- UPDATE departments 
 -- SET manager_id = (SELECT id FROM staff WHERE employee_code = 'EMP002') 
@@ -297,28 +358,37 @@ VALUES
 -- Thêm tài khoản mẫu cho khách hàng
 INSERT INTO accounts (account_number, customer_id, account_type_id, balance, status)
 VALUES
-('1000000000001', (SELECT id FROM customers WHERE citizen_id = '012345678901'), (SELECT id FROM account_types WHERE name = 'CHECKING'), 1500000.00, 'ACTIVE'),
-('1000000000002', (SELECT id FROM customers WHERE citizen_id = '012345678901'), (SELECT id FROM account_types WHERE name = 'SAVINGS'), 5000000.00, 'ACTIVE'),
-('1000000000003', (SELECT id FROM customers WHERE citizen_id = '012345678902'), (SELECT id FROM account_types WHERE name = 'CHECKING'), 1200000.00, 'ACTIVE'),
-('1000000000004', (SELECT id FROM customers WHERE citizen_id = '012345678902'), (SELECT id FROM account_types WHERE name = 'SAVINGS'), 800000.00, 'ACTIVE');
+('1000000000001', (SELECT id FROM customers WHERE citizen_id = '012345677901'), (SELECT id FROM account_types WHERE name = 'CHECKING'), 1500000.00, 'ACTIVE'),
+('1000000000002', (SELECT id FROM customers WHERE citizen_id = '012345677901'), (SELECT id FROM account_types WHERE name = 'SAVINGS'), 5000000.00, 'ACTIVE'),
+('1000000000003', (SELECT id FROM customers WHERE citizen_id = '012345677902'), (SELECT id FROM account_types WHERE name = 'CHECKING'), 1200000.00, 'ACTIVE'),
+('1000000000004', (SELECT id FROM customers WHERE citizen_id = '012345677902'), (SELECT id FROM account_types WHERE name = 'SAVINGS'), 800000.00, 'ACTIVE'),
+('1000000000005', (SELECT id FROM customers WHERE citizen_id = '012345677903'), (SELECT id FROM account_types WHERE name = 'CHECKING'), 2300000.00, 'ACTIVE'),
+('1000000000006', (SELECT id FROM customers WHERE citizen_id = '012345677903'), (SELECT id FROM account_types WHERE name = 'SAVINGS'), 7000000.00, 'ACTIVE'),
+('1000000000007', (SELECT id FROM customers WHERE citizen_id = '012345677904'), (SELECT id FROM account_types WHERE name = 'BUSINESS'), 15000000.00, 'ACTIVE');
 
 -- Thêm giao dịch nộp tiền mẫu
 INSERT INTO deposits (deposit_code, account_id, amount, description, status, created_by)
 VALUES
 ('DEP000001', (SELECT id FROM accounts WHERE account_number = '1000000000001'), 200000.00, 'Nộp tiền mặt', 'COMPLETED', (SELECT id FROM users WHERE phone_number = '0900000003')),
-('DEP000002', (SELECT id FROM accounts WHERE account_number = '1000000000003'), 350000.00, 'Nộp tiền quầy', 'COMPLETED', (SELECT id FROM users WHERE phone_number = '0900000003'));
+('DEP000002', (SELECT id FROM accounts WHERE account_number = '1000000000003'), 350000.00, 'Nộp tiền quầy', 'COMPLETED', (SELECT id FROM users WHERE phone_number = '0900000003')),
+('DEP000003', (SELECT id FROM accounts WHERE account_number = '1000000000005'), 500000.00, 'Nộp tiền ATM', 'COMPLETED', (SELECT id FROM users WHERE phone_number = '0900000007')),
+('DEP000004', (SELECT id FROM accounts WHERE account_number = '1000000000007'), 2000000.00, 'Nộp tiền quầy', 'COMPLETED', (SELECT id FROM users WHERE phone_number = '0900000008'));
 
 -- Thêm giao dịch chuyển khoản mẫu
 INSERT INTO transfers (transfer_code, from_account_id, to_account_id, amount, fee, total_amount, description, status, created_by)
 VALUES
 ('TRF000001', (SELECT id FROM accounts WHERE account_number = '1000000000001'), (SELECT id FROM accounts WHERE account_number = '1000000000003'), 300000.00, 3000.00, 303000.00, 'Chuyển tiền cho B', 'COMPLETED', (SELECT id FROM users WHERE phone_number = '0900000001')),
-('TRF000002', (SELECT id FROM accounts WHERE account_number = '1000000000003'), (SELECT id FROM accounts WHERE account_number = '1000000000002'), 150000.00, 1500.00, 151500.00, 'Chuyển tiền tiết kiệm cho A', 'PENDING', (SELECT id FROM users WHERE phone_number = '0900000002'));
+('TRF000002', (SELECT id FROM accounts WHERE account_number = '1000000000003'), (SELECT id FROM accounts WHERE account_number = '1000000000002'), 150000.00, 1500.00, 151500.00, 'Chuyển tiền tiết kiệm cho A', 'PENDING', (SELECT id FROM users WHERE phone_number = '0900000002')),
+('TRF000003', (SELECT id FROM accounts WHERE account_number = '1000000000005'), (SELECT id FROM accounts WHERE account_number = '1000000000007'), 1000000.00, 10000.00, 1010000.00, 'Thanh toán hợp đồng', 'COMPLETED', (SELECT id FROM users WHERE phone_number = '0900000005')),
+('TRF000004', (SELECT id FROM accounts WHERE account_number = '1000000000002'), (SELECT id FROM accounts WHERE account_number = '1000000000006'), 200000.00, 2000.00, 202000.00, 'Chuyển tiền tiết kiệm', 'PENDING', (SELECT id FROM users WHERE phone_number = '0900000002'));
 
 -- Thêm giao dịch rút tiền mẫu
 INSERT INTO withdrawals (withdrawal_code, account_id, amount, description, status, created_by)
 VALUES
 ('WTH000001', (SELECT id FROM accounts WHERE account_number = '1000000000001'), 200000.00, 'Rút tiền mặt', 'COMPLETED', (SELECT id FROM users WHERE phone_number = '0900000001')),
-('WTH000002', (SELECT id FROM accounts WHERE account_number = '1000000000003'), 100000.00, 'Rút tiền ATM', 'PENDING', (SELECT id FROM users WHERE phone_number = '0900000002'));
+('WTH000002', (SELECT id FROM accounts WHERE account_number = '1000000000003'), 100000.00, 'Rút tiền ATM', 'PENDING', (SELECT id FROM users WHERE phone_number = '0900000002')),
+('WTH000003', (SELECT id FROM accounts WHERE account_number = '1000000000005'), 300000.00, 'Rút tiền ATM', 'COMPLETED', (SELECT id FROM users WHERE phone_number = '0900000005')),
+('WTH000004', (SELECT id FROM accounts WHERE account_number = '1000000000007'), 1000000.00, 'Rút tiền tại quầy', 'PENDING', (SELECT id FROM users WHERE phone_number = '0900000006'));
 
 -- Thêm lịch sử giao dịch mẫu
 INSERT INTO transaction_history (transaction_code, account_id, transaction_type, amount, balance_before, balance_after, description, created_by)
@@ -326,8 +396,10 @@ VALUES
 ('HIS000001', (SELECT id FROM accounts WHERE account_number = '1000000000001'), 'DEPOSIT', 200000.00, 1300000.00, 1500000.00, 'Nộp tiền mặt', (SELECT id FROM users WHERE phone_number = '0900000003')),
 ('HIS000002', (SELECT id FROM accounts WHERE account_number = '1000000000001'), 'WITHDRAWAL', 200000.00, 1500000.00, 1300000.00, 'Rút tiền mặt', (SELECT id FROM users WHERE phone_number = '0900000001')),
 ('HIS000003', (SELECT id FROM accounts WHERE account_number = '1000000000001'), 'TRANSFER_OUT', 300000.00, 1300000.00, 1000000.00, 'Chuyển tiền cho B', (SELECT id FROM users WHERE phone_number = '0900000001')),
-('HIS000004', (SELECT id FROM accounts WHERE account_number = '1000000000003'), 'TRANSFER_IN', 300000.00, 1200000.00, 1500000.00, 'Nhận tiền từ A', (SELECT id FROM users WHERE phone_number = '0900000001'));
-
+('HIS000004', (SELECT id FROM accounts WHERE account_number = '1000000000003'), 'TRANSFER_IN', 300000.00, 1200000.00, 1500000.00, 'Nhận tiền từ A', (SELECT id FROM users WHERE phone_number = '0900000001')),
+('HIS000005', (SELECT id FROM accounts WHERE account_number = '1000000000005'), 'DEPOSIT', 500000.00, 1800000.00, 2300000.00, 'Nộp tiền ATM', (SELECT id FROM users WHERE phone_number = '0900000007')),
+('HIS000006', (SELECT id FROM accounts WHERE account_number = '1000000000005'), 'TRANSFER_OUT', 1000000.00, 2300000.00, 1300000.00, 'Thanh toán hợp đồng', (SELECT id FROM users WHERE phone_number = '0900000005')),
+('HIS000007', (SELECT id FROM accounts WHERE account_number = '1000000000007'), 'TRANSFER_IN', 1000000.00, 15000000.00, 16000000.00, 'Nhận tiền từ E', (SELECT id FROM users WHERE phone_number = '0900000005'));
 -- =============================================
 -- TẠO INDEX ĐỂ TỐI ƯU HIỆU SUẤT
 -- =============================================

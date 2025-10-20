@@ -15,4 +15,5 @@ public interface StaffRepository extends JpaRepository<Staff, Integer>, JpaSpeci
     Optional<Staff> findByUser_Id(Integer userId);
     List<Staff> findByDepartment_Id(Integer departmentId);
     List<Staff> findByIsActiveTrue();
+    long countByDepartment_IdAndIsActiveTrue(Integer departmentId);
 }

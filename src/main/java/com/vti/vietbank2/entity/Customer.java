@@ -39,11 +39,12 @@ public class Customer {
     @Column(name = "gender")
     private Gender gender;
 
-    @Column(name = "citizen_id", unique = true, length = 20)
+    @Column(name = "citizen_id", length = 20)
     private String citizenId;
 
     @Column(name = "address")
     private String address;
+
 
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
@@ -55,4 +56,8 @@ public class Customer {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updateAt;
+
+//    public boolean getIsDeleted() {
+//        return isDeleted;
+//    }
 }
