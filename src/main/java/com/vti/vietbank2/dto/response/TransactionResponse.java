@@ -17,12 +17,15 @@ public class TransactionResponse {
     private TransactionType transactionType;
     private Integer accountId;
     private String accountNumber;
+    private String accountName; // Thêm accountName
     private String customerName;
     private Integer relatedAccountId;
     private String relatedAccountNumber;
+    private String relatedAccountName; // Thêm relatedAccountName
     private String relatedCustomerName;
     private BigDecimal amount;
     private BigDecimal fee;
+    private BigDecimal balanceBefore;
     private BigDecimal balanceAfter;
     private String description;
     private String createdByName;

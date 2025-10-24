@@ -24,6 +24,7 @@ public class AccountController {
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<AccountResponse>>> getAllAccounts(
             @RequestParam(required = false) String accountNumber,
+            @RequestParam(required = false) String accountName,
             @RequestParam(required = false) Integer customerId,
             @RequestParam(required = false) Integer accountTypeId,
             @RequestParam(required = false) String status,
@@ -38,6 +39,7 @@ public class AccountController {
         
         AccountFilterRequest filterRequest = new AccountFilterRequest();
         filterRequest.setAccountNumber(accountNumber);
+        filterRequest.setAccountName(accountName);
         filterRequest.setCustomerId(customerId);
         filterRequest.setAccountTypeId(accountTypeId);
         if (status != null) {
@@ -91,7 +93,7 @@ public class AccountController {
         return ResponseEntity.ok(accountService.getBalanceById(id));
     }
     
-    @GetMapping("/{accountNumber}/balance")
+    @GetMapping("account-number/{accountNumber}/balance")
     public ResponseEntity<ApiResponse<BigDecimal>> getBalanceByAccountNumber(@PathVariable String accountNumber) {
         return ResponseEntity.ok(accountService.getBalanceByAccountNumber(accountNumber));
     }

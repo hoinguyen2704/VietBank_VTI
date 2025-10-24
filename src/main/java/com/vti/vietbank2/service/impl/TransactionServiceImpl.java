@@ -11,7 +11,6 @@ import com.vti.vietbank2.exception.InsufficientBalanceException;
 import com.vti.vietbank2.exception.ResourceNotFoundException;
 import com.vti.vietbank2.repository.*;
 import com.vti.vietbank2.service.TransactionService;
-import com.vti.vietbank2.util.AccountResolver;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,16 +26,12 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionHistoryRepository transactionHistoryRepository;
     private final AccountRepository accountRepository;
     private final StaffRepository staffRepository;
-    private final AccountResolver accountResolver;
-
     @Override
     @Transactional
     public ApiResponse<TransactionResponse> deposit(DepositRequest request) {
-        // Validate account identifier
-        accountResolver.validateAccountIdentifier(request.getAccountId(), request.getAccountNumber());
-        
-        // Resolve account by ID or account number
-        Account account = accountResolver.resolveAccount(request.getAccountId(), request.getAccountNumber());
+        // Find account by account number
+        Account account = accountRepository.findByAccountNumber(request.getAccountNumber())
+                .orElseThrow(() -> new ResourceNotFoundException("Account", "accountNumber", request.getAccountNumber()));
         
         if (account.getStatus() != com.vti.vietbank2.entity.enums.AccountStatus.ACTIVE) {
             throw new IllegalArgumentException("Account is not active");
@@ -47,6 +42,9 @@ public class TransactionServiceImpl implements TransactionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Staff", "id", request.getCreatedBy()));
         User user = staff.getUser();
 
+        // Calculate new balance before creating transaction
+        BigDecimal newBalance = account.getBalance().add(request.getAmount());
+
         // Create transaction record
         TransactionHistory transaction = new TransactionHistory();
         transaction.setTransaction_code(generateTransactionCode());
@@ -54,18 +52,14 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setAccount_id(account);
         transaction.setAmount(request.getAmount());
         transaction.setBalance_before(account.getBalance());
+        transaction.setBalance_after(newBalance); // Set balance_after immediately
         transaction.setDescription(request.getDescription());
         transaction.setCreated_by(user);
         transaction = transactionHistoryRepository.save(transaction);
 
         // Update account balance
-        BigDecimal newBalance = account.getBalance().add(request.getAmount());
         account.setBalance(newBalance);
         accountRepository.save(account);
-
-        // Update transaction balance after
-        transaction.setBalance_after(newBalance);
-        transaction = transactionHistoryRepository.save(transaction);
 
         TransactionResponse response = convertToTransactionResponse(transaction);
         return ApiResponse.success("Deposit completed successfully", response);
@@ -74,11 +68,9 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional
     public ApiResponse<TransactionResponse> withdraw(WithdrawalRequest request) {
-        // Validate account identifier
-        accountResolver.validateAccountIdentifier(request.getAccountId(), request.getAccountNumber());
-        
-        // Resolve account by ID or account number
-        Account account = accountResolver.resolveAccount(request.getAccountId(), request.getAccountNumber());
+        // Find account by account number
+        Account account = accountRepository.findByAccountNumber(request.getAccountNumber())
+                .orElseThrow(() -> new ResourceNotFoundException("Account", "accountNumber", request.getAccountNumber()));
         
         if (account.getStatus() != com.vti.vietbank2.entity.enums.AccountStatus.ACTIVE) {
             throw new IllegalArgumentException("Account is not active");
@@ -94,6 +86,9 @@ public class TransactionServiceImpl implements TransactionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Staff", "id", request.getCreatedBy()));
         User user = staff.getUser();
 
+        // Calculate new balance before creating transaction
+        BigDecimal newBalance = account.getBalance().subtract(request.getAmount());
+
         // Create transaction record
         TransactionHistory transaction = new TransactionHistory();
         transaction.setTransaction_code(generateTransactionCode());
@@ -101,18 +96,14 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setAccount_id(account);
         transaction.setAmount(request.getAmount());
         transaction.setBalance_before(account.getBalance());
+        transaction.setBalance_after(newBalance); // Set balance_after immediately
         transaction.setDescription(request.getDescription());
         transaction.setCreated_by(user);
         transaction = transactionHistoryRepository.save(transaction);
 
         // Update account balance
-        BigDecimal newBalance = account.getBalance().subtract(request.getAmount());
         account.setBalance(newBalance);
         accountRepository.save(account);
-
-        // Update transaction balance after
-        transaction.setBalance_after(newBalance);
-        transaction = transactionHistoryRepository.save(transaction);
 
         TransactionResponse response = convertToTransactionResponse(transaction);
         return ApiResponse.success("Withdrawal completed successfully", response);
@@ -121,21 +112,17 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional
     public ApiResponse<TransactionResponse> transfer(TransferRequest request) {
-        // Validate from account identifier
-        accountResolver.validateAccountIdentifier(request.getFromAccountId(), request.getFromAccountNumber());
-        
-        // Resolve from account by ID or account number
-        Account fromAccount = accountResolver.resolveAccount(request.getFromAccountId(), request.getFromAccountNumber());
+        // Find from account by account number
+        Account fromAccount = accountRepository.findByAccountNumber(request.getFromAccountNumber())
+                .orElseThrow(() -> new ResourceNotFoundException("Account", "accountNumber", request.getFromAccountNumber()));
         
         if (fromAccount.getStatus() != com.vti.vietbank2.entity.enums.AccountStatus.ACTIVE) {
             throw new IllegalArgumentException("From account is not active");
         }
 
-        // Validate to account identifier
-        accountResolver.validateAccountIdentifier(request.getToAccountId(), request.getToAccountNumber());
-        
-        // Resolve to account by ID or account number
-        Account toAccount = accountResolver.resolveAccount(request.getToAccountId(), request.getToAccountNumber());
+        // Find to account by account number
+        Account toAccount = accountRepository.findByAccountNumber(request.getToAccountNumber())
+                .orElseThrow(() -> new ResourceNotFoundException("Account", "accountNumber", request.getToAccountNumber()));
         
         if (toAccount.getStatus() != com.vti.vietbank2.entity.enums.AccountStatus.ACTIVE) {
             throw new IllegalArgumentException("To account is not active");
@@ -158,6 +145,10 @@ public class TransactionServiceImpl implements TransactionService {
 
         String transactionCode = generateTransactionCode();
 
+        // Calculate new balances before creating transactions
+        BigDecimal fromNewBalance = fromAccount.getBalance().subtract(request.getAmount());
+        BigDecimal toNewBalance = toAccount.getBalance().add(request.getAmount());
+
         // Create transfer out transaction
         TransactionHistory transferOut = new TransactionHistory();
         transferOut.setTransaction_code(transactionCode);
@@ -166,10 +157,11 @@ public class TransactionServiceImpl implements TransactionService {
         transferOut.setRelated_account_id(toAccount);
         transferOut.setAmount(request.getAmount());
         transferOut.setBalance_before(fromAccount.getBalance());
+        transferOut.setBalance_after(fromNewBalance); // Set balance_after immediately
         transferOut.setDescription(request.getDescription());
         transferOut.setCreated_by(user);
         transferOut = transactionHistoryRepository.save(transferOut);
-
+        transactionCode = generateTransactionCode();
         // Create transfer in transaction
         TransactionHistory transferIn = new TransactionHistory();
         transferIn.setTransaction_code(transactionCode);
@@ -178,23 +170,21 @@ public class TransactionServiceImpl implements TransactionService {
         transferIn.setRelated_account_id(fromAccount);
         transferIn.setAmount(request.getAmount());
         transferIn.setBalance_before(toAccount.getBalance());
+        transferIn.setBalance_after(toNewBalance); // Set balance_after immediately
         transferIn.setDescription(request.getDescription());
         transferIn.setCreated_by(user);
         transferIn = transactionHistoryRepository.save(transferIn);
 
         // Update account balances
-        BigDecimal fromNewBalance = fromAccount.getBalance().subtract(request.getAmount());
-        BigDecimal toNewBalance = toAccount.getBalance().add(request.getAmount());
-        
         fromAccount.setBalance(fromNewBalance);
         toAccount.setBalance(toNewBalance);
         
         accountRepository.save(fromAccount);
         accountRepository.save(toAccount);
 
-        // Update transaction balance after
-        transferOut.setBalance_after(fromNewBalance);
-        transferIn.setBalance_after(toNewBalance);
+        // Link transactions
+        transferOut.setRelated_transaction_id(transferIn.getId());
+        transferIn.setRelated_transaction_id(transferOut.getId());
         
         transactionHistoryRepository.save(transferOut);
         transactionHistoryRepository.save(transferIn);
@@ -223,6 +213,20 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
+    public ApiResponse<List<TransactionResponse>> getByAccountNumber(String accountNumber) {
+        // Find account by account number
+        Account account = accountRepository.findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new ResourceNotFoundException("Account", "accountNumber", accountNumber));
+        
+        // Get all transactions for this account
+        List<TransactionHistory> transactions = transactionHistoryRepository.findByAccountId(account.getId());
+        List<TransactionResponse> responses = transactions.stream()
+                .map(this::convertToTransactionResponse)
+                .toList();
+        return ApiResponse.success(responses);
+    }
+
+    @Override
     public ApiResponse<List<TransactionResponse>> getByCustomerId(Integer customerId) {
         // Get all accounts for the customer
         List<Account> accounts = accountRepository.findByCustomer_Id(customerId);
@@ -236,8 +240,18 @@ public class TransactionServiceImpl implements TransactionService {
         return ApiResponse.success(responses);
     }
 
+    @Override
+    public ApiResponse<Boolean> checkStaffExists(Integer staffId) {
+        boolean exists = staffRepository.existsById(staffId);
+        return ApiResponse.success(exists);
+    }
+
     private String generateTransactionCode() {
-        return "TXN" + System.currentTimeMillis() + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        // Tạo transaction code duy nhất để phù hợp với VARCHAR(20)
+        long timestamp = System.currentTimeMillis();
+        String uuid = UUID.randomUUID().toString().substring(0, 4).toUpperCase();
+        String code = "TXN" + (timestamp % 1000000000L) + uuid;
+        return code.length() > 20 ? code.substring(0, 20) : code;
     }
 
     private TransactionResponse convertToTransactionResponse(TransactionHistory transaction) {
@@ -247,12 +261,15 @@ public class TransactionServiceImpl implements TransactionService {
                 transaction.getTransaction_type(),
                 transaction.getAccount_id().getId(),
                 transaction.getAccount_id().getAccountNumber(),
+                transaction.getAccount_id().getAccountName(), // Thêm accountName
                 transaction.getAccount_id().getCustomer().getFullName(),
                 transaction.getRelated_account_id() != null ? transaction.getRelated_account_id().getId() : null,
                 transaction.getRelated_account_id() != null ? transaction.getRelated_account_id().getAccountNumber() : null,
+                transaction.getRelated_account_id() != null ? transaction.getRelated_account_id().getAccountName() : null, // Thêm relatedAccountName
                 transaction.getRelated_account_id() != null ? transaction.getRelated_account_id().getCustomer().getFullName() : null,
                 transaction.getAmount(),
                 BigDecimal.ZERO, // No fee field in current schema
+                transaction.getBalance_before(),
                 transaction.getBalance_after(),
                 transaction.getDescription(),
                 transaction.getCreated_by().getPhoneNumber(), // Use phone number as created by name

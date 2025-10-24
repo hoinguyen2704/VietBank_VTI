@@ -12,6 +12,7 @@ import com.vti.vietbank2.exception.DuplicateResourceException;
 import com.vti.vietbank2.exception.ResourceNotFoundException;
 import com.vti.vietbank2.repository.*;
 import com.vti.vietbank2.service.AccountService;
+import com.vti.vietbank2.util.AccountNameGenerator;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -42,14 +43,22 @@ public class AccountServiceImpl implements AccountService {
             throw new DuplicateResourceException("Account", "accountNumber", request.getAccountNumber());
         }
 
-        Customer customer = customerRepository.findById(request.getCustomerId())
-                .orElseThrow(() -> new ResourceNotFoundException("Customer", "id", request.getCustomerId()));
+        Customer customer = customerRepository.findByUser_PhoneNumber(request.getPhoneNumber())
+                .orElseThrow(() -> new ResourceNotFoundException("Customer", "phoneNumber", request.getPhoneNumber()));
 
         AccountType accountType = accountTypeRepository.findById(request.getAccountTypeId())
                 .orElseThrow(() -> new ResourceNotFoundException("AccountType", "id", request.getAccountTypeId()));
 
         Account account = new Account();
         account.setAccountNumber(request.getAccountNumber());
+        
+        // Sử dụng tên mặc định nếu không có accountName hoặc accountName trống
+        String accountName = request.getAccountName();
+        if (accountName == null || accountName.trim().isEmpty()) {
+            accountName = AccountNameGenerator.generateDefaultAccountName(customer.getFullName());
+        }
+        account.setAccountName(accountName);
+        
         account.setCustomer(customer);
         account.setAccountType(accountType);
         account.setBalance(BigDecimal.ZERO);
@@ -59,6 +68,7 @@ public class AccountServiceImpl implements AccountService {
         AccountResponse response = new AccountResponse(
                 account.getId(),
                 account.getAccountNumber(),
+                account.getAccountName(),
                 customer.getFullName(),
                 accountType.getName(),
                 account.getBalance(),
@@ -78,6 +88,7 @@ public class AccountServiceImpl implements AccountService {
         AccountResponse response = new AccountResponse(
                 account.getId(),
                 account.getAccountNumber(),
+                account.getAccountName(),
                 account.getCustomer().getFullName(),
                 account.getAccountType().getName(),
                 account.getBalance(),
@@ -136,6 +147,13 @@ public class AccountServiceImpl implements AccountService {
                 ));
             }
             
+            if (filterRequest.getAccountName() != null && !filterRequest.getAccountName().isEmpty()) {
+                predicates.add(criteriaBuilder.like(
+                    criteriaBuilder.lower(root.get("accountName")), 
+                    "%" + filterRequest.getAccountName().toLowerCase() + "%"
+                ));
+            }
+            
             if (filterRequest.getCustomerId() != null) {
                 predicates.add(criteriaBuilder.equal(root.get("customer").get("id"), filterRequest.getCustomerId()));
             }
@@ -172,6 +190,7 @@ public class AccountServiceImpl implements AccountService {
         return new AccountResponse(
             account.getId(),
             account.getAccountNumber(),
+            account.getAccountName(),
             account.getCustomer().getFullName(),
             account.getAccountType().getName(),
             account.getBalance(),
@@ -201,6 +220,9 @@ public class AccountServiceImpl implements AccountService {
                 .orElseThrow(() -> new ResourceNotFoundException("Account", "id", id));
         
         account.setStatus(request.getStatus());
+        if (request.getAccountName() != null && !request.getAccountName().trim().isEmpty()) {
+            account.setAccountName(request.getAccountName());
+        }
         if (request.getClosedDate() != null) {
             account.setClosedDate(request.getClosedDate());
         }

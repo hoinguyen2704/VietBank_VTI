@@ -49,4 +49,19 @@ public class TransactionController {
     public ResponseEntity<ApiResponse<List<TransactionResponse>>> getByCustomerId(@PathVariable Integer customerId) {
         return ResponseEntity.ok(transactionService.getByCustomerId(customerId));
     }
+
+    @GetMapping("/account-number/{accountNumber}")
+    public ResponseEntity<ApiResponse<List<TransactionResponse>>> getByAccountNumber(@PathVariable String accountNumber) {
+        return ResponseEntity.ok(transactionService.getByAccountNumber(accountNumber));
+    }
+
+    @GetMapping("/account/{accountNumber}/history")
+    public ResponseEntity<ApiResponse<List<TransactionResponse>>> getAccountTransactionHistory(@PathVariable String accountNumber) {
+        return ResponseEntity.ok(transactionService.getByAccountNumber(accountNumber));
+    }
+
+    @GetMapping("/staff/{staffId}/exists")
+    public ResponseEntity<ApiResponse<Boolean>> checkStaffExists(@PathVariable Integer staffId) {
+        return ResponseEntity.ok(transactionService.checkStaffExists(staffId));
+    }
 }

@@ -56,7 +56,6 @@ public class CustomerServiceImpl implements CustomerService {
         user = userRepository.save(user);
 
         Customer customer = new Customer();
-        customer.setId(user.getId()); // keep same id if desired, or let auto
         customer.setUser(user);
         customer.setFullName(request.getFullName());
         customer.setEmail(request.getEmail());

@@ -11,5 +11,7 @@ public class UpdateAccountRequest {
     @NotNull(message = "Account status is required")
     private AccountStatus status;
     
+    private String accountName;
+    
     private LocalDateTime closedDate;
 }

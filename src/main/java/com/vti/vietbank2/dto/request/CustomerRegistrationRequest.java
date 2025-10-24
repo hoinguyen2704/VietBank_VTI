@@ -3,6 +3,7 @@ package com.vti.vietbank2.dto.request;
 import com.vti.vietbank2.entity.enums.Gender;
 import jakarta.validation.constraints.*;
 import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.util.Date;
 
@@ -25,6 +26,7 @@ public class CustomerRegistrationRequest {
     private String email;
     
     @Past(message = "Date of birth must be in the past")
+    @JsonFormat(pattern = "dd/MM/yyyy")
     private Date dateOfBirth;
     
     private Gender gender;

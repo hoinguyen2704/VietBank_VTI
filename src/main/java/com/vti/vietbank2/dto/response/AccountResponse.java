@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 public class AccountResponse {
     private Integer id;
     private String accountNumber;
+    private String accountName;
     private String customerName;
     private String accountTypeName;
     private BigDecimal balance;

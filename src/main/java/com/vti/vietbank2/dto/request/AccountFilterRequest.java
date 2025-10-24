@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 @Data
 public class AccountFilterRequest {
     private String accountNumber;
+    private String accountName;
     private Integer customerId;
     private Integer accountTypeId;
     private AccountStatus status;

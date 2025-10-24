@@ -28,8 +28,6 @@ public class AccountResolver {
         if (accountId == null && (accountNumber == null || accountNumber.trim().isEmpty())) {
             throw new IllegalArgumentException("Either accountId or accountNumber must be provided");
         }
-        if (accountId != null && accountNumber != null && !accountNumber.trim().isEmpty()) {
-            throw new IllegalArgumentException("Provide either accountId or accountNumber, not both");
-        }
+        // Cho phép cung cấp cả hai, sẽ ưu tiên accountId
     }
 }

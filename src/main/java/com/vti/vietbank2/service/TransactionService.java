@@ -14,5 +14,7 @@ public interface TransactionService {
     ApiResponse<TransactionResponse> transfer(TransferRequest request);
     ApiResponse<TransactionResponse> getById(Integer id);
     ApiResponse<List<TransactionResponse>> getByAccountId(Integer accountId);
+    ApiResponse<List<TransactionResponse>> getByAccountNumber(String accountNumber);
     ApiResponse<List<TransactionResponse>> getByCustomerId(Integer customerId);
+    ApiResponse<Boolean> checkStaffExists(Integer staffId);
 }
