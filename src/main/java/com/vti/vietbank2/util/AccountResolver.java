@@ -30,4 +30,23 @@ public class AccountResolver {
         }
         // Cho phép cung cấp cả hai, sẽ ưu tiên accountId
     }
+    
+    /**
+     * Validates that exactly one account identifier is provided
+     * @param accountId Account ID
+     * @param accountNumber Account Number
+     * @throws IllegalArgumentException if both or neither are provided
+     */
+    public void validateSingleAccountIdentifier(Integer accountId, String accountNumber) {
+        boolean hasAccountId = accountId != null;
+        boolean hasAccountNumber = accountNumber != null && !accountNumber.trim().isEmpty();
+        
+        if (!hasAccountId && !hasAccountNumber) {
+            throw new IllegalArgumentException("Either accountId or accountNumber must be provided");
+        }
+        
+        if (hasAccountId && hasAccountNumber) {
+            throw new IllegalArgumentException("Provide either accountId or accountNumber, not both");
+        }
+    }
 }

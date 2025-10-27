@@ -1,7 +1,7 @@
 package com.vti.vietbank2.dto.request;
 
+import com.vti.vietbank2.validation.ValidTransferAccountIdentifiers;
 import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
@@ -9,11 +9,14 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 @Data
+@ValidTransferAccountIdentifiers
 public class TransferRequest {
-    @NotBlank(message = "From account number is required")
+    // From account - chỉ cần một trong hai
+    private Integer fromAccountId;
     private String fromAccountNumber;
     
-    @NotBlank(message = "To account number is required")
+    // To account - chỉ cần một trong hai
+    private Integer toAccountId;
     private String toAccountNumber;
     
     @NotNull(message = "Amount is required")

@@ -14,14 +14,15 @@ API này cung cấp các tính năng giao dịch tài chính bao gồm nạp ti�
 - **Request Body**:
 ```json
 {
-  "accountNumber": "string (required)",
+  "accountId": "Integer (optional - Internal ID)",
+  "accountNumber": "string (optional - User-friendly number)",
   "amount": "BigDecimal (required, min: 1000)",
   "description": "string (optional)",
   "createdBy": "Integer (required - Staff ID)"
 }
 ```
 - **Validation Rules**:
-  - `accountNumber`: Không được để trống
+  - **Account Identifier**: Phải cung cấp `accountId` HOẶC `accountNumber` (không được cả hai)
   - `amount`: Phải là số dương, tối thiểu 1,000 VND
   - `createdBy`: Không được null
 - **Response**: `ApiResponse<TransactionResponse>`
@@ -33,14 +34,15 @@ API này cung cấp các tính năng giao dịch tài chính bao gồm nạp ti�
 - **Request Body**:
 ```json
 {
-  "accountNumber": "string (required)",
+  "accountId": "Integer (optional - Internal ID)",
+  "accountNumber": "string (optional - User-friendly number)",
   "amount": "BigDecimal (required, min: 1000)",
   "description": "string (optional)",
   "createdBy": "Integer (required - Staff ID)"
 }
 ```
 - **Validation Rules**:
-  - `accountNumber`: Không được để trống
+  - **Account Identifier**: Phải cung cấp `accountId` HOẶC `accountNumber` (không được cả hai)
   - `amount`: Phải là số dương, tối thiểu 1,000 VND
   - `createdBy`: Không được null
 - **Response**: `ApiResponse<TransactionResponse>`
@@ -52,16 +54,18 @@ API này cung cấp các tính năng giao dịch tài chính bao gồm nạp ti�
 - **Request Body**:
 ```json
 {
-  "fromAccountNumber": "string (required)",
-  "toAccountNumber": "string (required)",
+  "fromAccountId": "Integer (optional - Internal ID)",
+  "fromAccountNumber": "string (optional - User-friendly number)",
+  "toAccountId": "Integer (optional - Internal ID)",
+  "toAccountNumber": "string (optional - User-friendly number)",
   "amount": "BigDecimal (required, min: 1000)",
   "description": "string (optional)",
   "createdBy": "Integer (required - Staff ID)"
 }
 ```
 - **Validation Rules**:
-  - `fromAccountNumber`: Không được để trống
-  - `toAccountNumber`: Không được để trống
+  - **From Account**: Phải cung cấp `fromAccountId` HOẶC `fromAccountNumber` (không được cả hai)
+  - **To Account**: Phải cung cấp `toAccountId` HOẶC `toAccountNumber` (không được cả hai)
   - `amount`: Phải là số dương, tối thiểu 1,000 VND
   - `createdBy`: Không được null
 - **Response**: `ApiResponse<TransactionResponse>`
@@ -155,7 +159,7 @@ API này cung cấp các tính năng giao dịch tài chính bao gồm nạp ti�
 
 ## 🔧 Ví dụ sử dụng
 
-### Nạp tiền
+### Nạp tiền bằng Account Number
 ```bash
 curl -X POST http://localhost:8080/api/transactions/deposit \
   -H "Content-Type: application/json" \
@@ -167,7 +171,19 @@ curl -X POST http://localhost:8080/api/transactions/deposit \
   }'
 ```
 
-### Rút tiền
+### Nạp tiền bằng Account ID
+```bash
+curl -X POST http://localhost:8080/api/transactions/deposit \
+  -H "Content-Type: application/json" \
+  -d '{
+    "accountId": 1,
+    "amount": 1000000,
+    "description": "Nạp tiền vào tài khoản",
+    "createdBy": 1
+  }'
+```
+
+### Rút tiền bằng Account Number
 ```bash
 curl -X POST http://localhost:8080/api/transactions/withdraw \
   -H "Content-Type: application/json" \
@@ -179,12 +195,50 @@ curl -X POST http://localhost:8080/api/transactions/withdraw \
   }'
 ```
 
-### Chuyển khoản
+### Rút tiền bằng Account ID
+```bash
+curl -X POST http://localhost:8080/api/transactions/withdraw \
+  -H "Content-Type: application/json" \
+  -d '{
+    "accountId": 1,
+    "amount": 500000,
+    "description": "Rút tiền mặt",
+    "createdBy": 1
+  }'
+```
+
+### Chuyển khoản bằng Account Numbers
 ```bash
 curl -X POST http://localhost:8080/api/transactions/transfer \
   -H "Content-Type: application/json" \
   -d '{
     "fromAccountNumber": "1000000000001",
+    "toAccountNumber": "1000000000002",
+    "amount": 300000,
+    "description": "Chuyển khoản",
+    "createdBy": 1
+  }'
+```
+
+### Chuyển khoản bằng Account IDs
+```bash
+curl -X POST http://localhost:8080/api/transactions/transfer \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fromAccountId": 1,
+    "toAccountId": 2,
+    "amount": 300000,
+    "description": "Chuyển khoản",
+    "createdBy": 1
+  }'
+```
+
+### Chuyển khoản kết hợp (Account ID + Account Number)
+```bash
+curl -X POST http://localhost:8080/api/transactions/transfer \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fromAccountId": 1,
     "toAccountNumber": "1000000000002",
     "amount": 300000,
     "description": "Chuyển khoản",
@@ -209,28 +263,43 @@ curl -X GET http://localhost:8080/api/transactions/staff/1/exists
 
 ## ⚠️ Lưu ý quan trọng
 
+### 🆕 Cải tiến mới - Hỗ trợ Account Identifier
+- **Account ID**: Sử dụng cho internal systems, performance tốt nhất
+- **Account Number**: Sử dụng cho user interfaces, dễ nhớ hơn
+- **Validation**: Chỉ được cung cấp 1 trong 2 loại identifier, không được cả hai
+- **Flexibility**: Hỗ trợ kết hợp Account ID và Account Number trong chuyển khoản
+
 ### Validation Rules
+- **Account Identifier**: Phải cung cấp `accountId` HOẶC `accountNumber` (không được cả hai)
 - Tất cả các giao dịch đều yêu cầu `createdBy` (ID nhân viên xử lý)
 - Số tiền tối thiểu cho mọi giao dịch là 1,000 VND
 - Tài khoản nguồn và đích trong chuyển khoản phải khác nhau
-- Tất cả request đều được validate bằng `@Valid`
+- Tất cả request đều được validate bằng `@Valid` và custom validators
 
 ### Business Rules
 - Giao dịch chuyển khoản sẽ tạo 2 bản ghi: `TRANSFER_OUT` và `TRANSFER_IN`
 - Tất cả giao dịch đều được ghi lại với mã giao dịch duy nhất
 - Response luôn bao gồm `accountName` và `relatedAccountName` khi có
 - Số dư được cập nhật tự động sau mỗi giao dịch
+- AccountResolver tự động resolve account từ ID hoặc Number
 
 ### Error Handling
 - API sử dụng `GlobalExceptionHandler` để xử lý lỗi
 - Trả về `ApiResponse` với `success: false` khi có lỗi
 - Validation errors được trả về với message chi tiết
+- Custom validation messages cho account identifier conflicts
 
 ### Transaction Types
 - `DEPOSIT`: Nạp tiền
 - `WITHDRAWAL`: Rút tiền  
 - `TRANSFER_OUT`: Chuyển tiền đi
 - `TRANSFER_IN`: Nhận tiền chuyển đến
+
+### 🔧 Technical Implementation
+- **AccountResolver**: Utility class để resolve account từ ID hoặc Number
+- **Custom Validators**: `@ValidAccountIdentifier` và `@ValidTransferAccountIdentifiers`
+- **Unit Tests**: Comprehensive test coverage cho validation và resolution
+- **Error Messages**: User-friendly error messages cho validation failures
 
 ## 🔍 Endpoints Summary
 

@@ -1,7 +1,7 @@
 package com.vti.vietbank2.dto.request;
 
+import com.vti.vietbank2.validation.ValidAccountIdentifier;
 import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
@@ -9,9 +9,11 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 @Data
+@ValidAccountIdentifier
 public class WithdrawalRequest {
-    @NotBlank(message = "Account number is required")
-    private String accountNumber;
+    // Account identifier - chỉ cần một trong hai
+    private Integer accountId;           // Optional: Internal ID
+    private String accountNumber;        // Optional: User-friendly number
     
     @NotNull(message = "Amount is required")
     @Positive(message = "Amount must be positive")

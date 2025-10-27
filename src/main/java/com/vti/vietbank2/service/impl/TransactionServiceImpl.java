@@ -11,6 +11,7 @@ import com.vti.vietbank2.exception.InsufficientBalanceException;
 import com.vti.vietbank2.exception.ResourceNotFoundException;
 import com.vti.vietbank2.repository.*;
 import com.vti.vietbank2.service.TransactionService;
+import com.vti.vietbank2.util.AccountResolver;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,12 +27,12 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionHistoryRepository transactionHistoryRepository;
     private final AccountRepository accountRepository;
     private final StaffRepository staffRepository;
+    private final AccountResolver accountResolver;
     @Override
     @Transactional
     public ApiResponse<TransactionResponse> deposit(DepositRequest request) {
-        // Find account by account number
-        Account account = accountRepository.findByAccountNumber(request.getAccountNumber())
-                .orElseThrow(() -> new ResourceNotFoundException("Account", "accountNumber", request.getAccountNumber()));
+        // Use AccountResolver to find account by either accountId or accountNumber
+        Account account = accountResolver.resolveAccount(request.getAccountId(), request.getAccountNumber());
         
         if (account.getStatus() != com.vti.vietbank2.entity.enums.AccountStatus.ACTIVE) {
             throw new IllegalArgumentException("Account is not active");
@@ -68,9 +69,8 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional
     public ApiResponse<TransactionResponse> withdraw(WithdrawalRequest request) {
-        // Find account by account number
-        Account account = accountRepository.findByAccountNumber(request.getAccountNumber())
-                .orElseThrow(() -> new ResourceNotFoundException("Account", "accountNumber", request.getAccountNumber()));
+        // Use AccountResolver to find account by either accountId or accountNumber
+        Account account = accountResolver.resolveAccount(request.getAccountId(), request.getAccountNumber());
         
         if (account.getStatus() != com.vti.vietbank2.entity.enums.AccountStatus.ACTIVE) {
             throw new IllegalArgumentException("Account is not active");
@@ -112,17 +112,14 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional
     public ApiResponse<TransactionResponse> transfer(TransferRequest request) {
-        // Find from account by account number
-        Account fromAccount = accountRepository.findByAccountNumber(request.getFromAccountNumber())
-                .orElseThrow(() -> new ResourceNotFoundException("Account", "accountNumber", request.getFromAccountNumber()));
+        // Use AccountResolver to find both accounts by either accountId or accountNumber
+        Account fromAccount = accountResolver.resolveAccount(request.getFromAccountId(), request.getFromAccountNumber());
         
         if (fromAccount.getStatus() != com.vti.vietbank2.entity.enums.AccountStatus.ACTIVE) {
             throw new IllegalArgumentException("From account is not active");
         }
 
-        // Find to account by account number
-        Account toAccount = accountRepository.findByAccountNumber(request.getToAccountNumber())
-                .orElseThrow(() -> new ResourceNotFoundException("Account", "accountNumber", request.getToAccountNumber()));
+        Account toAccount = accountResolver.resolveAccount(request.getToAccountId(), request.getToAccountNumber());
         
         if (toAccount.getStatus() != com.vti.vietbank2.entity.enums.AccountStatus.ACTIVE) {
             throw new IllegalArgumentException("To account is not active");
