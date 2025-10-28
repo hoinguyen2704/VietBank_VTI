@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -252,6 +253,9 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     private TransactionResponse convertToTransactionResponse(TransactionHistory transaction) {
+        // Get staff name from user
+        String createdByName = getStaffNameFromUser(transaction.getCreated_by());
+        
         return new TransactionResponse(
                 transaction.getId(),
                 transaction.getTransaction_code(),
@@ -269,9 +273,19 @@ public class TransactionServiceImpl implements TransactionService {
                 transaction.getBalance_before(),
                 transaction.getBalance_after(),
                 transaction.getDescription(),
-                transaction.getCreated_by().getPhoneNumber(), // Use phone number as created by name
+                createdByName, // Staff full name or phone number as fallback
                 transaction.getCreated_at(),
                 transaction.getCreated_at() // No update field in current schema
         );
+    }
+    
+    private String getStaffNameFromUser(User user) {
+        // Find staff by user ID
+        Optional<Staff> staffOptional = staffRepository.findByUser_Id(user.getId());
+        if (staffOptional.isPresent()) {
+            return staffOptional.get().getFullName();
+        }
+        // Fallback to phone number if staff not found
+        return user.getPhoneNumber();
     }
 }

@@ -241,10 +241,10 @@ public class TransactionServiceImpl implements TransactionService {
 curl -X POST http://localhost:8080/api/transactions/deposit \
   -H "Content-Type: application/json" \
   -d '{
-    "accountId": 1,
+  "accountId": 1,
     "amount": 1000000,
-    "description": "Nạp tiền từ ATM",
-    "createdBy": 1
+  "description": "Nạp tiền từ ATM",
+  "createdBy": 1
   }'
 ```
 
@@ -255,8 +255,8 @@ curl -X POST http://localhost:8080/api/transactions/deposit \
   -d '{
     "accountNumber": "1000000000001",
     "amount": 1000000,
-    "description": "Nạp tiền từ ATM",
-    "createdBy": 1
+  "description": "Nạp tiền từ ATM",
+  "createdBy": 1
   }'
 ```
 
@@ -265,11 +265,11 @@ curl -X POST http://localhost:8080/api/transactions/deposit \
 curl -X POST http://localhost:8080/api/transactions/transfer \
   -H "Content-Type: application/json" \
   -d '{
-    "fromAccountId": 1,
+  "fromAccountId": 1,
     "toAccountNumber": "1000000000002",
     "amount": 300000,
     "description": "Chuyển khoản",
-    "createdBy": 1
+  "createdBy": 1
   }'
 ```
 

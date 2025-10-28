@@ -268,23 +268,23 @@ INSERT INTO account_types (name, description, interest_rate, minimum_balance) VA
 
 -- Thêm người dùng mẫu
 INSERT INTO users (phone_number, password, role_id) VALUES
-('0900000001', '123456', (SELECT id FROM roles WHERE name = 'CUSTOMER')),
-('0900000002', '123456', (SELECT id FROM roles WHERE name = 'CUSTOMER')),
-('0900000003', '123456', (SELECT id FROM roles WHERE name = 'STAFF')),
-('0900000004', '123456', (SELECT id FROM roles WHERE name = 'STAFF')), -- Thêm nhân viên làm trưởng phòng
-('0900000009', '123456', (SELECT id FROM roles WHERE name = 'ADMIN')),
-('0900000005', '123456', (SELECT id FROM roles WHERE name = 'CUSTOMER')),
-('0900000006', '123456', (SELECT id FROM roles WHERE name = 'CUSTOMER')),
-('0900000007', '123456', (SELECT id FROM roles WHERE name = 'STAFF')),
-('0900000008', '123456', (SELECT id FROM roles WHERE name = 'STAFF')),
-('0900000010', '123456', (SELECT id FROM roles WHERE name = 'CUSTOMER')),
-('0900000011', '123456', (SELECT id FROM roles WHERE name = 'CUSTOMER')),
-('0900000012', '123456', (SELECT id FROM roles WHERE name = 'CUSTOMER')),
-('0900000013', '123456', (SELECT id FROM roles WHERE name = 'CUSTOMER')),
-('0900000014', '123456', (SELECT id FROM roles WHERE name = 'CUSTOMER')),
-('0900000015', '123456', (SELECT id FROM roles WHERE name = 'STAFF')),
-('0900000016', '123456', (SELECT id FROM roles WHERE name = 'STAFF')),
-('0900000017', '123456', (SELECT id FROM roles WHERE name = 'STAFF'));
+('0900000001', md5('123456'), (SELECT id FROM roles WHERE name = 'CUSTOMER')),
+('0900000002', md5('123456'), (SELECT id FROM roles WHERE name = 'CUSTOMER')),
+('0900000003', md5('123456'), (SELECT id FROM roles WHERE name = 'STAFF')),
+('0900000004', md5('123456'), (SELECT id FROM roles WHERE name = 'STAFF')), -- Thêm nhân viên làm trưởng phòng
+('0900000009', md5('123456'), (SELECT id FROM roles WHERE name = 'ADMIN')),
+('0900000005', md5('123456'), (SELECT id FROM roles WHERE name = 'CUSTOMER')),
+('0900000006', md5('123456'), (SELECT id FROM roles WHERE name = 'CUSTOMER')),
+('0900000007', md5('123456'), (SELECT id FROM roles WHERE name = 'STAFF')),
+('0900000008', md5('123456'), (SELECT id FROM roles WHERE name = 'STAFF')),
+('0900000010', md5('123456'), (SELECT id FROM roles WHERE name = 'CUSTOMER')),
+('0900000011', md5('123456'), (SELECT id FROM roles WHERE name = 'CUSTOMER')),
+('0900000012', md5('123456'), (SELECT id FROM roles WHERE name = 'CUSTOMER')),
+('0900000013', md5('123456'), (SELECT id FROM roles WHERE name = 'CUSTOMER')),
+('0900000014', md5('123456'), (SELECT id FROM roles WHERE name = 'CUSTOMER')),
+('0900000015', md5('123456'), (SELECT id FROM roles WHERE name = 'STAFF')),
+('0900000016', md5('123456'), (SELECT id FROM roles WHERE name = 'STAFF')),
+('0900000017', md5('123456'), (SELECT id FROM roles WHERE name = 'STAFF'));
 
 -- Thêm khách hàng mẫu (tham chiếu users)
 INSERT INTO customers (user_id, full_name, email, date_of_birth, gender, citizen_id, address)
