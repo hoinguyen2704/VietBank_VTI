@@ -12,6 +12,7 @@ import com.vti.vietbank2.exception.ResourceNotFoundException;
 import com.vti.vietbank2.repository.*;
 import com.vti.vietbank2.service.TransactionService;
 import com.vti.vietbank2.util.AccountResolver;
+import com.vti.vietbank2.util.SecurityContextHelper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,8 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionHistoryRepository transactionHistoryRepository;
     private final AccountRepository accountRepository;
     private final StaffRepository staffRepository;
+    private final CustomerRepository customerRepository;
+    private final UserRepository userRepository;
     private final AccountResolver accountResolver;
     @Override
     @Transactional
@@ -38,6 +41,9 @@ public class TransactionServiceImpl implements TransactionService {
         if (account.getStatus() != com.vti.vietbank2.entity.enums.AccountStatus.ACTIVE) {
             throw new IllegalArgumentException("Account is not active");
         }
+
+        // Staff can deposit to any account, Customer cannot perform deposit
+        // (Deposit typically done at bank counter by staff)
 
         // Validate staff exists and get user
         Staff staff = staffRepository.findById(request.getCreatedBy())
@@ -75,6 +81,22 @@ public class TransactionServiceImpl implements TransactionService {
         
         if (account.getStatus() != com.vti.vietbank2.entity.enums.AccountStatus.ACTIVE) {
             throw new IllegalArgumentException("Account is not active");
+        }
+
+        // Check ownership - only allow CUSTOMER to withdraw from their own accounts
+        String currentUsername = SecurityContextHelper.getCurrentUsername();
+        if (currentUsername != null && SecurityContextHelper.isCustomer()) {
+            // Verify that the account belongs to the current customer
+            User currentUser = userRepository.findByPhoneNumber(currentUsername)
+                    .orElseThrow(() -> new ResourceNotFoundException("User", "phoneNumber", currentUsername));
+            
+            Customer currentCustomer = customerRepository.findByUser_Id(currentUser.getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Customer", "userId", currentUser.getId()));
+            
+            // Check if account belongs to current customer
+            if (account.getCustomer().getId() != currentCustomer.getId()) {
+                throw new IllegalArgumentException("You can only withdraw from your own accounts");
+            }
         }
 
         // Check sufficient balance
@@ -134,6 +156,22 @@ public class TransactionServiceImpl implements TransactionService {
         // Check sufficient balance
         if (fromAccount.getBalance().compareTo(request.getAmount()) < 0) {
             throw new InsufficientBalanceException("Insufficient balance for transfer");
+        }
+
+        // Check ownership - only allow CUSTOMER to transfer from their own accounts
+        String currentUsername = SecurityContextHelper.getCurrentUsername();
+        if (currentUsername != null && SecurityContextHelper.isCustomer()) {
+            // Verify that the fromAccount belongs to the current customer
+            User currentUser = userRepository.findByPhoneNumber(currentUsername)
+                    .orElseThrow(() -> new ResourceNotFoundException("User", "phoneNumber", currentUsername));
+            
+            Customer currentCustomer = customerRepository.findByUser_Id(currentUser.getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Customer", "userId", currentUser.getId()));
+            
+            // Check if fromAccount belongs to current customer
+            if (fromAccount.getCustomer().getId() != currentCustomer.getId()) {
+                throw new IllegalArgumentException("You can only transfer from your own accounts");
+            }
         }
 
         // Validate staff exists and get user
