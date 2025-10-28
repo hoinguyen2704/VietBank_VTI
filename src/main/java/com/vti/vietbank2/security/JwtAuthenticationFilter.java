@@ -26,20 +26,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
             throws ServletException, IOException {
         
-        final String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        final String phoneNumber;
-        
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-        
-        jwt = authHeader.substring(7);
-        
         try {
-            phoneNumber = jwtTokenProvider.getUsernameFromToken(jwt);
-            
+            final String authHeader = request.getHeader("Authorization");
+
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            final String jwt = authHeader.substring(7);
+            final String phoneNumber = jwtTokenProvider.getUsernameFromToken(jwt);
+
             if (phoneNumber != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(phoneNumber);
                 
@@ -51,11 +48,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     );
                     
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                    // Log authentication details
+                    logger.info("Setting authentication for user: " + phoneNumber);
+                    logger.info("Authorities: " + userDetails.getAuthorities());
+
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                } else {
+                    logger.error("Token validation failed for user: " + phoneNumber);
                 }
             }
         } catch (Exception e) {
-            logger.error("Cannot set user authentication: {}", e);
+            logger.error("Cannot set user authentication: ", e);
         }
         
         filterChain.doFilter(request, response);

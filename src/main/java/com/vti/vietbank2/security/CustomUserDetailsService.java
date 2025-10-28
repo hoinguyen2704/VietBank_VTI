@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -20,6 +21,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     private final UserRepository userRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String phoneNumber) throws UsernameNotFoundException {
         User user = userRepository.findByPhoneNumber(phoneNumber)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with phone number: " + phoneNumber));
@@ -32,8 +34,11 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     private Collection<? extends GrantedAuthority> getAuthorities(User user) {
-        // Get role from user
-        String roleName = user.getRole() != null ? user.getRole().getName() : "CUSTOMER";
+        // Get role from user and handle null case
+        String roleName = "CUSTOMER";
+        if (user.getRole() != null) {
+            roleName = user.getRole().getName();
+        }
         return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + roleName));
     }
 }
