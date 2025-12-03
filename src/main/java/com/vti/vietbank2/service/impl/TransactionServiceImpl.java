@@ -2,8 +2,11 @@ package com.vti.vietbank2.service.impl;
 
 import com.vti.vietbank2.dto.request.DepositRequest;
 import com.vti.vietbank2.dto.request.TransferRequest;
+import com.vti.vietbank2.dto.request.TransactionComplexSearchRequest;
 import com.vti.vietbank2.dto.request.WithdrawalRequest;
 import com.vti.vietbank2.dto.response.ApiResponse;
+import com.vti.vietbank2.dto.response.PageResponse;
+import com.vti.vietbank2.dto.response.TransactionDetailResponse;
 import com.vti.vietbank2.dto.response.TransactionResponse;
 import com.vti.vietbank2.entity.*;
 import com.vti.vietbank2.entity.enums.TransactionType;
@@ -15,6 +18,10 @@ import com.vti.vietbank2.util.AccountResolver;
 import com.vti.vietbank2.util.SecurityContextHelper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -325,5 +332,121 @@ public class TransactionServiceImpl implements TransactionService {
         }
         // Fallback to phone number if staff not found
         return user.getPhoneNumber();
+    }
+    
+    @Override
+    public ApiResponse<PageResponse<TransactionDetailResponse>> searchComplexTransactions(TransactionComplexSearchRequest request) {
+        // Tạo Pageable cho pagination và sorting
+        Sort sort = Sort.by(
+            request.getSortDirection().equalsIgnoreCase("desc") ? 
+            Sort.Direction.DESC : Sort.Direction.ASC, 
+            request.getSortBy()
+        );
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
+        
+        // Thực hiện query phức tạp với nhiều JOIN
+        Page<TransactionHistory> transactionPage = transactionHistoryRepository.findComplexTransactionHistory(
+            request.getCustomerName(),
+            request.getCustomerPhone(),
+            request.getCitizenId(),
+            request.getAccountNumber(),
+            request.getAccountId(),
+            request.getRelatedAccountNumber(),
+            request.getTransactionType(),
+            request.getTransactionCode(),
+            request.getMinAmount(),
+            request.getMaxAmount(),
+            request.getFromDate(),
+            request.getToDate(),
+            request.getCreatedByStaffId(),
+            pageable
+        );
+        
+        // Convert to DTO
+        List<TransactionDetailResponse> responses = transactionPage.getContent().stream()
+            .map(this::convertToTransactionDetailResponse)
+            .toList();
+        
+        // Tạo PageResponse
+        PageResponse<TransactionDetailResponse> pageResponse = new PageResponse<>(
+            responses,
+            transactionPage.getNumber(),
+            transactionPage.getSize(),
+            transactionPage.getTotalElements(),
+            transactionPage.getTotalPages(),
+            transactionPage.isFirst(),
+            transactionPage.isLast()
+        );
+        
+        return ApiResponse.success(pageResponse);
+    }
+    
+    private TransactionDetailResponse convertToTransactionDetailResponse(TransactionHistory th) {
+        Account account = th.getAccount_id();
+        Customer customer = account.getCustomer();
+        User customerUser = customer.getUser();
+        
+        // Related account info (if exists)
+        Account relatedAccount = th.getRelated_account_id();
+        Customer relatedCustomer = relatedAccount != null ? relatedAccount.getCustomer() : null;
+        User relatedCustomerUser = relatedCustomer != null ? relatedCustomer.getUser() : null;
+        
+        // Staff info (created_by)
+        User createdByUser = th.getCreated_by();
+        Optional<Staff> staffOptional = staffRepository.findByUser_Id(createdByUser.getId());
+        
+        TransactionDetailResponse response = new TransactionDetailResponse();
+        
+        // Transaction info
+        response.setTransactionId(th.getId());
+        response.setTransactionCode(th.getTransaction_code());
+        response.setTransactionType(th.getTransaction_type());
+        response.setAmount(th.getAmount());
+        response.setBalanceBefore(th.getBalance_before());
+        response.setBalanceAfter(th.getBalance_after());
+        response.setDescription(th.getDescription());
+        response.setCreatedAt(th.getCreated_at());
+        
+        // Main Account info
+        response.setAccountId(account.getId());
+        response.setAccountNumber(account.getAccountNumber());
+        response.setAccountName(account.getAccountName());
+        response.setAccountBalance(account.getBalance());
+        
+        // Main Customer info
+        response.setCustomerId(customer.getId());
+        response.setCustomerName(customer.getFullName());
+        response.setCustomerPhone(customerUser.getPhoneNumber());
+        response.setCustomerEmail(customer.getEmail());
+        response.setCustomerCitizenId(customer.getCitizenId());
+        
+        // Related Account info (for transfers)
+        if (relatedAccount != null) {
+            response.setRelatedAccountId(relatedAccount.getId());
+            response.setRelatedAccountNumber(relatedAccount.getAccountNumber());
+            response.setRelatedAccountName(relatedAccount.getAccountName());
+        }
+        
+        // Related Customer info
+        if (relatedCustomer != null && relatedCustomerUser != null) {
+            response.setRelatedCustomerId(relatedCustomer.getId());
+            response.setRelatedCustomerName(relatedCustomer.getFullName());
+            response.setRelatedCustomerPhone(relatedCustomerUser.getPhoneNumber());
+        }
+        
+        // Staff who created transaction
+        if (staffOptional.isPresent()) {
+            Staff staff = staffOptional.get();
+            response.setCreatedByStaffId(staff.getId());
+            response.setCreatedByStaffName(staff.getFullName());
+            response.setCreatedByStaffCode(staff.getEmployeeCode());
+            response.setCreatedByStaffEmail(staff.getEmail());
+        } else {
+            // Fallback to user info if staff not found
+            response.setCreatedByStaffId(createdByUser.getId());
+            response.setCreatedByStaffName(createdByUser.getPhoneNumber());
+        }
+        
+        return response;
     }
 }
