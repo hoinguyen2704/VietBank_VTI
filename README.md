@@ -25,13 +25,13 @@ VietBank2 là hệ thống quản lý ngân hàng số với đầy đủ tính 
 
 ### API Documentation
 - **[API_DOCUMENTATION.md](./API_DOCUMENTATION.md)** - Complete API reference
-- **[01_Authentication_API.md](./src/main/java/com/vti/vietbank2/api/01_Authentication_API.md)** - Login, Logout, JWT
-- **[02_Transaction_API.md](./src/main/java/com/vti/vietbank2/api/02_Transaction_API.md)** - Deposit, Withdrawal, Transfer
-- **[03_Account_API.md](./src/main/java/com/vti/vietbank2/api/03_Account_API.md)** - Account Management
-- **[04_Customer_API.md](./src/main/java/com/vti/vietbank2/api/04_Customer_API.md)** - Customer Management
-- **[05_Staff_API.md](./src/main/java/com/vti/vietbank2/api/05_Staff_API.md)** - Staff Management
-- **[06_Department_Position_API.md](./src/main/java/com/vti/vietbank2/api/06_Department_Position_API.md)** - Org Management
-- **[07_Security_Roles.md](./src/main/java/com/vti/vietbank2/api/07_Security_Roles.md)** - Security & Permissions
+- **[01_Authentication_API.md](./src/main/java/com/vti/vietbank/api/01_Authentication_API.md)** - Login, Logout, JWT
+- **[02_Transaction_API.md](./src/main/java/com/vti/vietbank/api/02_Transaction_API.md)** - Deposit, Withdrawal, Transfer
+- **[03_Account_API.md](./src/main/java/com/vti/vietbank/api/03_Account_API.md)** - Account Management
+- **[04_Customer_API.md](./src/main/java/com/vti/vietbank/api/04_Customer_API.md)** - Customer Management
+- **[05_Staff_API.md](./src/main/java/com/vti/vietbank/api/05_Staff_API.md)** - Staff Management
+- **[06_Department_Position_API.md](./src/main/java/com/vti/vietbank/api/06_Department_Position_API.md)** - Org Management
+- **[07_Security_Roles.md](./src/main/java/com/vti/vietbank/api/07_Security_Roles.md)** - Security & Permissions
 
 ## 🔐 Authentication
 

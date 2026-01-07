@@ -24,7 +24,7 @@ CREATE TABLE roles (
 -- 2. BẢNG USERS - Người dùng chung
 -- =============================================
 CREATE TABLE users (
-    id INT PRIMARY KEY AUTO_INCREMENT,
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
     phone_number VARCHAR(15) NOT NULL UNIQUE,
     `password` VARCHAR(255) NOT NULL,
     role_id INT NOT NULL,
@@ -37,8 +37,8 @@ CREATE TABLE users (
 -- 3. BẢNG CUSTOMERS - Thông tin khách hàng
 -- =============================================
 CREATE TABLE customers (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT NOT NULL UNIQUE,
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL UNIQUE,
     full_name VARCHAR(100) NOT NULL,
     email VARCHAR(100),
     date_of_birth DATE,
@@ -87,8 +87,8 @@ CREATE TABLE positions (
 -- 6. BẢNG STAFF - Thông tin nhân viên
 -- =============================================
 CREATE TABLE staff (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT NOT NULL UNIQUE,
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL UNIQUE,
     full_name VARCHAR(100) NOT NULL,
     email VARCHAR(100),
     employee_code VARCHAR(20) UNIQUE NOT NULL,
@@ -129,10 +129,10 @@ CREATE TABLE account_types (
 -- 8. BẢNG ACCOUNTS - Tài khoản ngân hàng
 -- =============================================
 CREATE TABLE accounts (
-    id INT PRIMARY KEY AUTO_INCREMENT,
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
     account_number VARCHAR(20) NOT NULL UNIQUE,
     account_name VARCHAR(100) NULL DEFAULT "TAI KHOAN MAC DINH",
-    customer_id INT NOT NULL,
+    customer_id BIGINT NOT NULL,
     account_type_id INT NOT NULL,
     balance DECIMAL(15,2) DEFAULT 0.00 CHECK (balance >= 0),
     `status` ENUM('ACTIVE', 'INACTIVE', 'SUSPENDED', 'CLOSED') DEFAULT 'ACTIVE',
@@ -147,16 +147,16 @@ CREATE TABLE accounts (
 -- 9. BẢNG TRANSFERS - Giao dịch chuyển khoản
 -- =============================================
 CREATE TABLE transfers (
-    id INT PRIMARY KEY AUTO_INCREMENT,
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
     transfer_code VARCHAR(20) NOT NULL UNIQUE,
-    from_account_id INT NOT NULL,
-    to_account_id INT NOT NULL,
+    from_account_id BIGINT NOT NULL,
+    to_account_id BIGINT NOT NULL,
     amount DECIMAL(15,2) NOT NULL CHECK (amount > 0),
     fee DECIMAL(15,2) DEFAULT 0.00 CHECK (fee >= 0),
     total_amount DECIMAL(17,2) NOT NULL CHECK (total_amount > 0),
     `description` TEXT,
     `status` ENUM('PENDING', 'COMPLETED', 'FAILED', 'CANCELLED') DEFAULT 'PENDING',
-    created_by INT,
+    created_by BIGINT,
     processed_at TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -170,13 +170,13 @@ CREATE TABLE transfers (
 -- 10. BẢNG DEPOSITS - Giao dịch nộp tiền
 -- =============================================
 CREATE TABLE deposits (
-    id INT PRIMARY KEY AUTO_INCREMENT,
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
     deposit_code VARCHAR(20) NOT NULL UNIQUE,
-    account_id INT NOT NULL,
+    account_id BIGINT NOT NULL,
     amount DECIMAL(15,2) NOT NULL CHECK (amount > 0),
     `description` TEXT,
     `status` ENUM('PENDING', 'COMPLETED', 'FAILED', 'CANCELLED') DEFAULT 'PENDING',
-    created_by INT NOT NULL,
+    created_by BIGINT NOT NULL,
     processed_at TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -189,13 +189,13 @@ CREATE TABLE deposits (
 -- =============================================
 
 CREATE TABLE withdrawals (
-    id INT PRIMARY KEY AUTO_INCREMENT,
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
     withdrawal_code VARCHAR(20) NOT NULL UNIQUE,
-    account_id INT NOT NULL,
+    account_id BIGINT NOT NULL,
     amount DECIMAL(15,2) NOT NULL CHECK (amount > 0),
     `description` TEXT,
     `status` ENUM('PENDING', 'COMPLETED', 'FAILED', 'CANCELLED') DEFAULT 'PENDING',
-    created_by INT NOT NULL,
+    created_by BIGINT NOT NULL,
     processed_at TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -207,17 +207,17 @@ CREATE TABLE withdrawals (
 -- 12. BẢNG TRANSACTION_HISTORY - Lịch sử giao dịch tổng hợp
 -- =============================================
 CREATE TABLE transaction_history (
-    id INT PRIMARY KEY AUTO_INCREMENT,
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
     transaction_code VARCHAR(20) NOT NULL UNIQUE,
-    account_id INT NOT NULL,
+    account_id BIGINT NOT NULL,
     transaction_type ENUM('DEPOSIT', 'WITHDRAWAL', 'TRANSFER_IN', 'TRANSFER_OUT') NOT NULL,
     amount DECIMAL(15,2) NOT NULL CHECK (amount > 0),
     balance_before DECIMAL(15,2) NOT NULL CHECK (balance_before >= 0),
     balance_after DECIMAL(15,2) NOT NULL CHECK (balance_after >= 0),
     `description` TEXT,
-    related_account_id INT NULL,
-    related_transaction_id INT NULL,
-    created_by INT NOT NULL,
+    related_account_id BIGINT NULL,
+    related_transaction_id BIGINT NULL,
+    created_by BIGINT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (account_id) REFERENCES accounts(id),
     FOREIGN KEY (related_account_id) REFERENCES accounts(id),
