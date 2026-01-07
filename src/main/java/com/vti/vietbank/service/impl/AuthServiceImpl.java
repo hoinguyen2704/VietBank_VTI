@@ -41,52 +41,42 @@ public class AuthServiceImpl implements AuthService {
     // Store refresh tokens (in production, use Redis)
     private final ConcurrentHashMap<String, String> refreshTokenStore = new ConcurrentHashMap<>();
 
+
     @Override
     public ApiResponse<AuthResponse> login(LoginRequest request) {
         // Get user from database
         User user = userRepository.findByPhoneNumber(request.getPhoneNumber())
                 .orElseThrow(() -> new ResourceNotFoundException("User", "phoneNumber", request.getPhoneNumber()));
 
-        // Hash input password with MD5
-        String hashedPassword = passwordEncoder.encode(request.getPassword());
-
-        // Check password - support MD5 hash
-        if (!hashedPassword.equals(user.getPassword())) {
-            // Try BCrypt matching as fallback
-            try {
-                CustomUserDetails userDetails = userDetailsService.loadUserByUsername(request.getPhoneNumber());
-                if (!passwordEncoder.matches(request.getPassword(), userDetails.getPassword())) {
-                    return ApiResponse.error("Invalid credentials");
-                }
-            } catch (Exception e) {
-                // Try plain text comparison as last resort
-                if (!request.getPassword().equals(user.getPassword())) {
-                    return ApiResponse.error("Invalid credentials");
-                }
-            }
-        }
-
         // Load user details for Spring Security
-        CustomUserDetails userDetails = userDetailsService.loadUserByUsername(request.getPhoneNumber());
+        CustomUserDetails userDetails = new CustomUserDetails(user);
+        if (!passwordEncoder.matches(request.getPassword(), userDetails.getPassword())) {
+            return ApiResponse.error("Invalid credentials");
+        }
+        // Try plain text comparison as last resort
+//        if (!request.getPassword().equals(user.getPassword())) {
+//            return ApiResponse.error("Invalid credentials");
+//        }
+
 
         // Generate tokens
-        String accessToken = jwtTokenProvider.generateToken(userDetails, user.getId(), user.getRole().getName());
+        String accessToken = jwtTokenProvider.generateToken(userDetails, userDetails.getId(), user.getRole().getName());
         String refreshToken = jwtTokenProvider.generateRefreshToken(userDetails);
 
         // Store refresh token
         refreshTokenStore.put(refreshToken, request.getPhoneNumber());
 
         // Create response
-        AuthResponse authResponse = new AuthResponse(
-                accessToken,
-                refreshToken,
-                "Bearer",
-                jwtTokenProvider.getJwtExpiration(), // Assuming you add this getter
-                user.getId(),
-                user.getPhoneNumber(),
-                user.getRole().getName()
-        );
-
+        AuthResponse authResponse = AuthResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .tokenType("Bearer")
+                .expiresIn(jwtTokenProvider.getJwtExpiration())
+                .userId(userDetails.getId())
+                .username(userDetails.getUsername())
+                .role(user.getRole().getName())
+                .build();
+        System.out.println(jwtTokenProvider.getRoleFromToken(accessToken));
         return ApiResponse.success("Login successful", authResponse);
     }
 
@@ -106,22 +96,13 @@ public class AuthServiceImpl implements AuthService {
 
             // Load user details
             CustomUserDetails userDetails = userDetailsService.loadUserByUsername(phoneNumber);
-            User user = userRepository.findByPhoneNumber(phoneNumber)
-                    .orElseThrow(() -> new ResourceNotFoundException("User", "phoneNumber", phoneNumber));
+            User user = userRepository.findByPhoneNumber(phoneNumber).orElseThrow(() -> new ResourceNotFoundException("User", "phoneNumber", phoneNumber));
 
             // Generate new access token
             String accessToken = jwtTokenProvider.generateToken(userDetails, user.getId(), user.getRole().getName());
 
             // Create response
-            AuthResponse authResponse = new AuthResponse(
-                    accessToken,
-                    request.getRefreshToken(),
-                    "Bearer",
-                    jwtTokenProvider.getJwtExpiration(),
-                    user.getId(),
-                    user.getPhoneNumber(),
-                    user.getRole().getName()
-            );
+            AuthResponse authResponse = new AuthResponse(accessToken, request.getRefreshToken(), "Bearer", jwtTokenProvider.getJwtExpiration(), user.getId(), user.getPhoneNumber(), user.getRole().getName());
 
             return ApiResponse.success("Token refreshed successfully", authResponse);
         } catch (Exception e) {
@@ -159,16 +140,7 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public ApiResponse<CustomerResponse> register(AuthRegistrationRequest request) {
 
-        CustomerRegistrationRequest customer = CustomerRegistrationRequest.builder()
-                .phoneNumber(request.getPhoneNumber())
-                .password(request.getPassword())
-                .fullName(request.getFullName())
-                .email(request.getEmail())
-                .dateOfBirth(request.getDateOfBirth())
-                .gender(request.getGender())
-                .citizenId(request.getCitizenId())
-                .address(request.getAddress())
-                .build();
+        CustomerRegistrationRequest customer = CustomerRegistrationRequest.builder().phoneNumber(request.getPhoneNumber()).password(request.getPassword()).fullName(request.getFullName()).email(request.getEmail()).dateOfBirth(request.getDateOfBirth()).gender(request.getGender()).citizenId(request.getCitizenId()).address(request.getAddress()).build();
 
         CustomerResponse response = customerService.register(customer).getData();
 //        LoginRequest loginRequest = new LoginRequest(

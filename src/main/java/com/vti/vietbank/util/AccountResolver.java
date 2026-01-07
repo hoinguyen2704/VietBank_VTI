@@ -40,13 +40,26 @@ public class AccountResolver {
     public void validateSingleAccountIdentifier(Long accountId, String accountNumber) {
         boolean hasAccountId = accountId != null;
         boolean hasAccountNumber = accountNumber != null && !accountNumber.trim().isEmpty();
-        
+
         if (!hasAccountId && !hasAccountNumber) {
             throw new IllegalArgumentException("Either accountId or accountNumber must be provided");
         }
-        
+
         if (hasAccountId && hasAccountNumber) {
             throw new IllegalArgumentException("Provide either accountId or accountNumber, not both");
+        }
+    }
+    public void validateAccountNumberAndCustomerId(String accountNumber, Long customerId) {
+        if (accountNumber == null || accountNumber.trim().isEmpty()) {
+            throw new IllegalArgumentException("Account number must be provided");
+        }
+        if (customerId == null) {
+            throw new IllegalArgumentException("Customer ID must be provided");
+        }
+        Account account = accountRepository.findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new ResourceNotFoundException("Account", "accountNumber", accountNumber));
+        if (account.getCustomer().getId() != customerId) {
+            throw new ResourceNotFoundException("Account", "accountNumber", accountNumber);
         }
     }
 }

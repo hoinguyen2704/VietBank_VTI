@@ -50,7 +50,6 @@ public class CustomUserDetailsService implements UserDetailsService {
         if (user.getRole() != null) {
             roleName = user.getRole().getName();
         }
-
         return Set.of(new SimpleGrantedAuthority("ROLE_" + roleName));
     }
 

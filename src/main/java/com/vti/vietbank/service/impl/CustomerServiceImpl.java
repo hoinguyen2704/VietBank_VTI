@@ -217,6 +217,13 @@ public class CustomerServiceImpl implements CustomerService {
         return ApiResponse.success(customerRepository.existsByCitizenId(citizenId));
     }
 
+    @Override
+    public ApiResponse<CustomerResponse> getCustomerByUserId(Long userId) {
+        Customer customer = customerRepository.findByUser_Id(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer", "userId", userId));
+        return ApiResponse.success(convertToCustomerResponse(customer));
+    }
+
     private Specification<Customer> createCustomerSpecification(CustomerSearchRequest searchRequest) {
         return (root, query, criteriaBuilder) -> {
             List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();

@@ -51,7 +51,7 @@ public class AuthController {
     }
 
     @GetMapping("/profile")
-    @Operation(summary = "Lấy thông tin profile", description = "Lấy thông tin user hiện tại từ JWT token", hidden = true)
+    @Operation(summary = "Lấy thông tin profile", description = "Lấy thông tin user hiện tại từ JWT token")
     public ResponseEntity<ApiResponse<CustomUserDetails>> getProfile(@RequestHeader("Authorization") String token) {
         // Remove "Bearer " prefix if exists
         String actualToken = token.startsWith("Bearer ") ? token.substring(7) : token;

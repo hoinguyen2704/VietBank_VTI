@@ -16,6 +16,7 @@ public interface CustomerService {
     ApiResponse<CustomerResponse> update(Long id, UpdateCustomerRequest request);
     ApiResponse<Void> delete(Long id);
     ApiResponse<List<CustomerResponse>> search(CustomerSearchRequest request);
-    ApiResponse<Boolean> existsByCitizenId(String citizenId);
 
+    ApiResponse<Boolean> existsByCitizenId(String citizenId);
+    ApiResponse<CustomerResponse> getCustomerByUserId(Long userId);
 }

@@ -27,11 +27,9 @@ public class CustomUserDetails implements UserDetails, CredentialsContainer {
         this.id = user.getId();
         this.username = user.getPhoneNumber();
         this.password = user.getPassword();
-        this.authorities = getAuthorities_My(user);
-
-
+        this.authorities = getAuthorities(user);
     }
-    private Set<GrantedAuthority> getAuthorities_My(User user) {
+    private Set<GrantedAuthority> getAuthorities(User user) {
         String roleName = "CUSTOMER";
         if (user.getRole() != null) {
             roleName = user.getRole().getName();

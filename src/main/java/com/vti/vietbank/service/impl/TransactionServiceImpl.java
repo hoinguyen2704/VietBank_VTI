@@ -13,6 +13,10 @@ import com.vti.vietbank.entity.enums.TransactionType;
 import com.vti.vietbank.exception.InsufficientBalanceException;
 import com.vti.vietbank.exception.ResourceNotFoundException;
 import com.vti.vietbank.repository.*;
+import com.vti.vietbank.security.CustomUserDetails;
+import com.vti.vietbank.security.CustomUserDetailsService;
+import com.vti.vietbank.service.CustomerService;
+import com.vti.vietbank.service.NotificationService;
 import com.vti.vietbank.service.TransactionService;
 import com.vti.vietbank.util.AccountResolver;
 import com.vti.vietbank.util.SecurityContextHelper;
@@ -22,6 +26,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -39,12 +44,17 @@ public class TransactionServiceImpl implements TransactionService {
     private final CustomerRepository customerRepository;
     private final UserRepository userRepository;
     private final AccountResolver accountResolver;
-    private final com.vti.vietbank.service.NotificationService notificationService;
+    private final NotificationService notificationService;
+    private final CustomerService customerService;
 
     @Override
     @Transactional
-    public ApiResponse<TransactionResponse> deposit(DepositRequest request) {
+    public ApiResponse<TransactionResponse> deposit(DepositRequest request, Authentication authentication) {
         // Use AccountResolver to find account by either accountId or accountNumber
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        // Assuming userDetails is available
+        Long customcustomerId = customerService.getCustomerByUserId(userDetails.getId()).getData().getId();
+        accountResolver.validateAccountNumberAndCustomerId(request.getAccountNumber(), customcustomerId);
         Account account = accountResolver.resolveAccount(request.getAccountId(), request.getAccountNumber());
 
         if (account.getStatus() != com.vti.vietbank.entity.enums.AccountStatus.ACTIVE) {
@@ -84,7 +94,11 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional
-    public ApiResponse<TransactionResponse> withdraw(WithdrawalRequest request) {
+    public ApiResponse<TransactionResponse> withdraw(WithdrawalRequest request, Authentication authentication) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        // Assuming userDetails is available
+        Long customcustomerId = customerService.getCustomerByUserId(userDetails.getId()).getData().getId();
+        accountResolver.validateAccountNumberAndCustomerId(request.getAccountNumber(), customcustomerId);
         // Use AccountResolver to find account by either accountId or accountNumber
         Account account = accountResolver.resolveAccount(request.getAccountId(), request.getAccountNumber());
 
@@ -143,7 +157,11 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional
-    public ApiResponse<TransactionResponse> transfer(TransferRequest request) {
+    public ApiResponse<TransactionResponse> transfer(TransferRequest request, Authentication authentication) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        // Assuming userDetails is available
+        Long customcustomerId = customerService.getCustomerByUserId(userDetails.getId()).getData().getId();
+        accountResolver.validateAccountNumberAndCustomerId(request.getFromAccountNumber(), customcustomerId);
         // Use AccountResolver to find both accounts by either accountId or
         // accountNumber
         Account fromAccount = accountResolver.resolveAccount(request.getFromAccountId(),
@@ -278,7 +296,11 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public ApiResponse<List<TransactionResponse>> getByAccountNumber(String accountNumber) {
+    public ApiResponse<List<TransactionResponse>> getByAccountNumber(String accountNumber, Authentication authentication) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        // Assuming userDetails is available
+        Long customcustomerId = customerService.getCustomerByUserId(userDetails.getId()).getData().getId();
+        accountResolver.validateAccountNumberAndCustomerId(accountNumber, customcustomerId);
         // Find account by account number
         Account account = accountRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(() -> new ResourceNotFoundException("Account", "accountNumber", accountNumber));

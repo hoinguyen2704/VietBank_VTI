@@ -13,4 +13,5 @@ public interface CustomerRepository extends JpaRepository<Customer, Long>, JpaSp
     boolean existsByCitizenId(String citizenId);
     Optional<Customer> findByUser_Id(Long userId);
     Optional<Customer> findByUser_PhoneNumber(String phoneNumber);
+
 }

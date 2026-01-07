@@ -1,4 +1,4 @@
-# 🏦 VietBank2 - Banking Management System
+# 🏦 VietBank - Banking Management System
 ## CV Project Highlights
 
 ---
@@ -108,7 +108,7 @@
 
 Copy the following section directly into your CV:
 
-**VietBank2 - Banking Management System**
+**VietBank - Banking Management System**
 - Designed layered architecture (Controller–Service–Repository) ensuring clean separation of concerns
 - Implemented JWT authentication & role-based access control (Customer/Staff/Admin)
 - Built transaction modules (Deposit, Withdrawal, Transfer) with transactional consistency

@@ -1,10 +1,10 @@
-# 🏦 VietBank2 - Banking Management System
+# 🏦 VietBank - Banking Management System
 
 Hệ thống quản lý ngân hàng số hiện đại với Spring Boot 3.5.6
 
 ## 📋 Tổng quan
 
-VietBank2 là hệ thống quản lý ngân hàng số với đầy đủ tính năng:
+VietBank là hệ thống quản lý ngân hàng số với đầy đủ tính năng:
 - ✅ Authentication & Authorization với JWT
 - ✅ Account Management
 - ✅ Transaction Management (Deposit, Withdrawal, Transfer)
@@ -117,7 +117,7 @@ curl -X POST http://localhost:8080/api/auth/login \
 ## 📝 Project Structure
 
 ```
-src/main/java/com/vti/vietbank2/
+src/main/java/com/vti/vietbank/
 ├── controller/     # REST Controllers
 ├── service/        # Business Logic
 ├── repository/     # Data Access
@@ -140,7 +140,7 @@ src/main/java/com/vti/vietbank2/
 
 ## 📄 License
 
-VietBank2 Banking System
+VietBank Banking System
 
 ---
 

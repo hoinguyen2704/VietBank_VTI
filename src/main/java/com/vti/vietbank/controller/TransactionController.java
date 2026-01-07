@@ -12,6 +12,8 @@ import com.vti.vietbank.service.TransactionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,23 +21,24 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/transactions")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('CUSTOMER')")
 public class TransactionController {
 
     private final TransactionService transactionService;
 
     @PostMapping("/deposit")
-    public ResponseEntity<ApiResponse<TransactionResponse>> deposit(@Valid @RequestBody DepositRequest request) {
-        return ResponseEntity.ok(transactionService.deposit(request));
+    public ResponseEntity<ApiResponse<TransactionResponse>> deposit(@Valid @RequestBody DepositRequest request, Authentication authentication) {
+        return ResponseEntity.ok(transactionService.deposit(request, authentication));
     }
 
     @PostMapping("/withdraw")
-    public ResponseEntity<ApiResponse<TransactionResponse>> withdraw(@Valid @RequestBody WithdrawalRequest request) {
-        return ResponseEntity.ok(transactionService.withdraw(request));
+    public ResponseEntity<ApiResponse<TransactionResponse>> withdraw(@Valid @RequestBody WithdrawalRequest request, Authentication authentication) {
+        return ResponseEntity.ok(transactionService.withdraw(request, authentication));
     }
 
     @PostMapping("/transfer")
-    public ResponseEntity<ApiResponse<TransactionResponse>> transfer(@Valid @RequestBody TransferRequest request) {
-        return ResponseEntity.ok(transactionService.transfer(request));
+    public ResponseEntity<ApiResponse<TransactionResponse>> transfer(@Valid @RequestBody TransferRequest request, Authentication authentication) {
+        return ResponseEntity.ok(transactionService.transfer(request, authentication));
     }
 
     @GetMapping("/{id}")
@@ -54,13 +57,13 @@ public class TransactionController {
     }
 
     @GetMapping("/account-number/{accountNumber}")
-    public ResponseEntity<ApiResponse<List<TransactionResponse>>> getByAccountNumber(@PathVariable String accountNumber) {
-        return ResponseEntity.ok(transactionService.getByAccountNumber(accountNumber));
+    public ResponseEntity<ApiResponse<List<TransactionResponse>>> getByAccountNumber(@PathVariable String accountNumber, Authentication authentication) {
+        return ResponseEntity.ok(transactionService.getByAccountNumber(accountNumber, authentication));
     }
 
     @GetMapping("/account/{accountNumber}/history")
-    public ResponseEntity<ApiResponse<List<TransactionResponse>>> getAccountTransactionHistory(@PathVariable String accountNumber) {
-        return ResponseEntity.ok(transactionService.getByAccountNumber(accountNumber));
+    public ResponseEntity<ApiResponse<List<TransactionResponse>>> getAccountTransactionHistory(@PathVariable String accountNumber, Authentication authentication) {
+        return ResponseEntity.ok(transactionService.getByAccountNumber(accountNumber, authentication));
     }
 
     @GetMapping("/staff/{staffId}/exists")
