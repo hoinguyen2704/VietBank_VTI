@@ -49,17 +49,15 @@ public class AccountResolver {
             throw new IllegalArgumentException("Provide either accountId or accountNumber, not both");
         }
     }
-    public void validateAccountNumberAndCustomerId(String accountNumber, Long customerId) {
+    public Account validateAccountNumberAndCustomerId(String accountNumber, Long customerId) {
         if (accountNumber == null || accountNumber.trim().isEmpty()) {
             throw new IllegalArgumentException("Account number must be provided");
         }
         if (customerId == null) {
             throw new IllegalArgumentException("Customer ID must be provided");
         }
-        Account account = accountRepository.findByAccountNumber(accountNumber)
+        Account account = accountRepository.findByAccountNumberAndCustomerId(accountNumber, customerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Account", "accountNumber", accountNumber));
-        if (account.getCustomer().getId() != customerId) {
-            throw new ResourceNotFoundException("Account", "accountNumber", accountNumber);
-        }
+        return account;
     }
 }

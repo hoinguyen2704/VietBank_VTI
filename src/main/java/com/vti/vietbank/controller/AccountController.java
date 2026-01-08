@@ -10,6 +10,7 @@ import com.vti.vietbank.service.AccountService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -67,8 +68,8 @@ public class AccountController {
     }
 
     @GetMapping("/{accountNumber}")
-    public ResponseEntity<ApiResponse<AccountResponse>> getByAccountNumber(@PathVariable String accountNumber) {
-        return ResponseEntity.ok(accountService.getByAccountNumber(accountNumber));
+    public ResponseEntity<ApiResponse<AccountResponse>> getByAccountNumber(@PathVariable String accountNumber, Authentication authentication) {
+        return ResponseEntity.ok(accountService.getByAccountNumber(accountNumber, authentication));
     }
     
     @PutMapping("/{id}")

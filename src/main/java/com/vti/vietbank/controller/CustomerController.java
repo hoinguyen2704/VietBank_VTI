@@ -3,6 +3,7 @@ package com.vti.vietbank.controller;
 import com.vti.vietbank.dto.request.CustomerRegistrationRequest;
 import com.vti.vietbank.dto.request.CustomerSearchRequest;
 import com.vti.vietbank.dto.request.UpdateCustomerRequest;
+import com.vti.vietbank.dto.response.AccountResponse;
 import com.vti.vietbank.dto.response.ApiResponse;
 import com.vti.vietbank.dto.response.CustomerResponse;
 import com.vti.vietbank.dto.response.PageResponse;
@@ -87,7 +88,7 @@ public class CustomerController {
     }
     
     @GetMapping("/{id}/accounts")
-    public ResponseEntity<ApiResponse<List<com.vti.vietbank.dto.response.AccountResponse>>> getAccounts(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<List<AccountResponse>>> getAccounts(@PathVariable Long id) {
         // Use existing AccountService method
         return ResponseEntity.ok(accountService.getByCustomerId(id));
     }

@@ -16,4 +16,5 @@ public interface AccountRepository extends JpaRepository<Account, Long>, JpaSpec
     List<Account> findByCustomer_Id(Long customerId);
     List<Account> findByStatus(AccountStatus status);
     List<Account> findByCustomer_IdAndStatus(Long customerId, AccountStatus status);
+    Optional<Account> findByAccountNumberAndCustomerId(String accountNumber, Long customerId);
 }
