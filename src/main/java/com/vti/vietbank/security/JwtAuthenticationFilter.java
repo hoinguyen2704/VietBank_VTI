@@ -6,23 +6,19 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.context.ApplicationContext;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailsService userDetailsService;
-    private ApplicationContext applicationContext;
-    
-    private TokenBlacklistService getTokenBlacklistService() {
-        return applicationContext.getBean(TokenBlacklistService.class);
-    }
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -40,7 +36,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             final String jwt = authHeader.substring(7);
             
             // Kiểm tra token có trong blacklist không
-            if (getTokenBlacklistService().isBlacklisted(jwt)) {
+            if (tokenBlacklistService.isBlacklisted(jwt)) {
                 logger.warn("Token is blacklisted");
                 filterChain.doFilter(request, response);
                 return;

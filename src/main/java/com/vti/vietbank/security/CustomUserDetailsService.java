@@ -26,7 +26,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByPhoneNumber(phoneNumber)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with phone number: " + phoneNumber));
 
-        return CustomUserDetails.builder()
+        return CustomUserDetails.customBuilder()
                 .id(user.getId())
                 .username(user.getPhoneNumber())
                 .password(user.getPassword())

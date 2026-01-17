@@ -1,43 +1,71 @@
 package com.vti.vietbank.security;
 
-import com.vti.vietbank.entity.User;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.User;
 
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
-@AllArgsConstructor
-@Data
-@Builder
-@NoArgsConstructor
-public class CustomUserDetails implements UserDetails, CredentialsContainer {
-    private Long id;
-    private String username;
-    private String password;
-    private Set<GrantedAuthority> authorities;
+import lombok.Getter;
 
+import java.util.Collection;
+import java.util.Collections;
 
-    public CustomUserDetails(User user) {
-        this.id = user.getId();
-        this.username = user.getPhoneNumber();
-        this.password = user.getPassword();
-        this.authorities = getAuthorities(user);
-    }
-    private Set<GrantedAuthority> getAuthorities(User user) {
-        String roleName = "CUSTOMER";
-        if (user.getRole() != null) {
-            roleName = user.getRole().getName();
-        }
-        return Set.of(new SimpleGrantedAuthority("ROLE_" + roleName));
-    }
+@Getter
+public class CustomUserDetails extends User {
+    private final long id;
+
+    // Ẩn password khỏi JSON response
     @Override
-    public void eraseCredentials() {
-        this.password = null;
+    @JsonIgnore
+    public String getPassword() {
+        return super.getPassword();
+    }
+
+    public CustomUserDetails(long id, String username, String password,
+            Collection<? extends GrantedAuthority> authorities) {
+        super(username, password, authorities);
+        this.id = id;
+    }
+
+    public CustomUserDetails(com.vti.vietbank.entity.User user) {
+        super(user.getPhoneNumber(), user.getPassword(),
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().getName())));
+        this.id = user.getId();
+    }
+
+    public static CustomUserDetailsBuilder customBuilder() {
+        return new CustomUserDetailsBuilder();
+    }
+
+    public static class CustomUserDetailsBuilder {
+        private long id;
+        private String username;
+        private String password;
+        private Collection<? extends GrantedAuthority> authorities;
+
+        public CustomUserDetailsBuilder id(long id) {
+            this.id = id;
+            return this;
+        }
+
+        public CustomUserDetailsBuilder username(String username) {
+            this.username = username;
+            return this;
+        }
+
+        public CustomUserDetailsBuilder password(String password) {
+            this.password = password;
+            return this;
+        }
+
+        public CustomUserDetailsBuilder authorities(Collection<? extends GrantedAuthority> authorities) {
+            this.authorities = authorities;
+            return this;
+        }
+
+        public CustomUserDetails build() {
+            return new CustomUserDetails(id, username, password, authorities);
+        }
     }
 }
