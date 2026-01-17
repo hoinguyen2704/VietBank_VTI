@@ -10,9 +10,11 @@ import com.vti.vietbank.security.CustomUserDetails;
 import com.vti.vietbank.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -44,17 +46,23 @@ public class AuthController {
 
     @PostMapping("/logout")
     @Operation(summary = "Đăng xuất", description = "Đăng xuất và vô hiệu hóa token")
-    public ResponseEntity<ApiResponse<Void>> logout(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<ApiResponse<Void>> logout(HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
+        if (token == null || !token.startsWith("Bearer ")) {
+            return ResponseEntity.ok(ApiResponse.error("Token không hợp lệ"));
+        }
         // Remove "Bearer " prefix if exists
         String actualToken = token.startsWith("Bearer ") ? token.substring(7) : token;
         return ResponseEntity.ok(authService.logout(actualToken));
     }
 
     @GetMapping("/profile")
-    @Operation(summary = "Lấy thông tin profile", description = "Lấy thông tin user hiện tại từ JWT token")
-    public ResponseEntity<ApiResponse<CustomUserDetails>> getProfile(@RequestHeader("Authorization") String token) {
-        // Remove "Bearer " prefix if exists
-        String actualToken = token.startsWith("Bearer ") ? token.substring(7) : token;
-        return ResponseEntity.ok(authService.getProfile(actualToken));
+    @Operation(summary = "Lấy thông tin profile", description = "Lấy thông tin user hiện tại đang đăng nhập")
+    public ResponseEntity<ApiResponse<CustomUserDetails>> getProfile(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        if (userDetails == null) {
+            return ResponseEntity.ok(ApiResponse.error("Lấy thông tin profile thất bại"));
+        }
+        return ResponseEntity.ok(ApiResponse.success("Lấy thông tin profile thành công", userDetails));
     }
 }

@@ -59,7 +59,7 @@ public class StaffServiceImpl implements StaffService {
         // Create user
         User user = new User();
         user.setPhoneNumber(request.getPhoneNumber());
-        user.setPassword(request.getPassword()); // TODO: encode later when adding security
+        user.setPassword(request.getPassword());
         user.setRole(role);
         user = userRepository.save(user);
 

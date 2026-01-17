@@ -14,7 +14,6 @@ import com.vti.vietbank.exception.InsufficientBalanceException;
 import com.vti.vietbank.exception.ResourceNotFoundException;
 import com.vti.vietbank.repository.*;
 import com.vti.vietbank.security.CustomUserDetails;
-import com.vti.vietbank.security.CustomUserDetailsService;
 import com.vti.vietbank.service.CustomerService;
 import com.vti.vietbank.service.NotificationService;
 import com.vti.vietbank.service.TransactionService;

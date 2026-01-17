@@ -9,15 +9,15 @@ import com.vti.vietbank.dto.response.AuthResponse;
 import com.vti.vietbank.dto.response.CustomerResponse;
 import com.vti.vietbank.entity.User;
 import com.vti.vietbank.exception.ResourceNotFoundException;
-import com.vti.vietbank.repository.RoleRepository;
+
 import com.vti.vietbank.repository.UserRepository;
 import com.vti.vietbank.security.CustomUserDetails;
 import com.vti.vietbank.security.CustomUserDetailsService;
 import com.vti.vietbank.security.JwtTokenProvider;
+import com.vti.vietbank.security.TokenBlacklistService;
 import com.vti.vietbank.service.AuthService;
 import com.vti.vietbank.service.CustomerService;
-import com.vti.vietbank.service.IRoleService;
-import com.vti.vietbank.service.IUserService;
+
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -34,13 +34,13 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final CustomerService customerService;
+    private final TokenBlacklistService tokenBlacklistService;
 
-    private final RoleRepository roleRepository;
-    private final IUserService iUserService;
-    private final IRoleService iRoleService;
+    // private final RoleRepository roleRepository;
+    // private final IUserService iUserService;
+    // private final IRoleService iRoleService;
     // Store refresh tokens (in production, use Redis)
     private final ConcurrentHashMap<String, String> refreshTokenStore = new ConcurrentHashMap<>();
-
 
     @Override
     public ApiResponse<AuthResponse> login(LoginRequest request) {
@@ -54,10 +54,9 @@ public class AuthServiceImpl implements AuthService {
             return ApiResponse.error("Invalid credentials");
         }
         // Try plain text comparison as last resort
-//        if (!request.getPassword().equals(user.getPassword())) {
-//            return ApiResponse.error("Invalid credentials");
-//        }
-
+        // if (!request.getPassword().equals(user.getPassword())) {
+        // return ApiResponse.error("Invalid credentials");
+        // }
 
         // Generate tokens
         String accessToken = jwtTokenProvider.generateToken(userDetails, userDetails.getId(), user.getRole().getName());
@@ -96,13 +95,15 @@ public class AuthServiceImpl implements AuthService {
 
             // Load user details
             CustomUserDetails userDetails = userDetailsService.loadUserByUsername(phoneNumber);
-            User user = userRepository.findByPhoneNumber(phoneNumber).orElseThrow(() -> new ResourceNotFoundException("User", "phoneNumber", phoneNumber));
+            User user = userRepository.findByPhoneNumber(phoneNumber)
+                    .orElseThrow(() -> new ResourceNotFoundException("User", "phoneNumber", phoneNumber));
 
             // Generate new access token
             String accessToken = jwtTokenProvider.generateToken(userDetails, user.getId(), user.getRole().getName());
 
             // Create response
-            AuthResponse authResponse = new AuthResponse(accessToken, request.getRefreshToken(), "Bearer", jwtTokenProvider.getJwtExpiration(), user.getId(), user.getPhoneNumber(), user.getRole().getName());
+            AuthResponse authResponse = new AuthResponse(accessToken, request.getRefreshToken(), "Bearer",
+                    jwtTokenProvider.getJwtExpiration(), user.getId(), user.getPhoneNumber(), user.getRole().getName());
 
             return ApiResponse.success("Token refreshed successfully", authResponse);
         } catch (Exception e) {
@@ -113,6 +114,9 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public ApiResponse<Void> logout(String token) {
         try {
+            // Thêm access token vào blacklist
+            tokenBlacklistService.blacklistToken(token);
+
             // Remove refresh token from store (if exists)
             refreshTokenStore.values().removeIf(value -> value.equals(token));
             return ApiResponse.success("Logout successful");
@@ -140,14 +144,17 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public ApiResponse<CustomerResponse> register(AuthRegistrationRequest request) {
 
-        CustomerRegistrationRequest customer = CustomerRegistrationRequest.builder().phoneNumber(request.getPhoneNumber()).password(request.getPassword()).fullName(request.getFullName()).email(request.getEmail()).dateOfBirth(request.getDateOfBirth()).gender(request.getGender()).citizenId(request.getCitizenId()).address(request.getAddress()).build();
+        CustomerRegistrationRequest customer = CustomerRegistrationRequest.builder()
+                .phoneNumber(request.getPhoneNumber()).password(request.getPassword()).fullName(request.getFullName())
+                .email(request.getEmail()).dateOfBirth(request.getDateOfBirth()).gender(request.getGender())
+                .citizenId(request.getCitizenId()).address(request.getAddress()).build();
 
         CustomerResponse response = customerService.register(customer).getData();
-//        LoginRequest loginRequest = new LoginRequest(
-//                request.getPhoneNumber(),
-//                request.getPassword()
-//        );
-//        AuthResponse authResponse = login(loginRequest).getData();
+        // LoginRequest loginRequest = new LoginRequest(
+        // request.getPhoneNumber(),
+        // request.getPassword()
+        // );
+        // AuthResponse authResponse = login(loginRequest).getData();
         return ApiResponse.success("Customer registered", response);
 
     }

@@ -21,6 +21,7 @@ import com.vti.vietbank.service.CustomerService;
 import com.vti.vietbank.util.AccountNameGenerator;
 import com.vti.vietbank.util.AccountResolver;
 import jakarta.transaction.Transactional;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -35,7 +36,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
@@ -152,7 +152,7 @@ public class AccountServiceImpl implements AccountService {
 
     private Specification<Account> createAccountSpecification(AccountFilterRequest filterRequest) {
         return (root, query, criteriaBuilder) -> {
-            List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();
+            List<Predicate> predicates = new ArrayList<>();
 
             if (filterRequest.getAccountNumber() != null && !filterRequest.getAccountNumber().isEmpty()) {
                 predicates.add(criteriaBuilder.like(
@@ -196,7 +196,7 @@ public class AccountServiceImpl implements AccountService {
                 predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("openedDate"), filterRequest.getOpenedTo()));
             }
 
-            return criteriaBuilder.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
     }
 

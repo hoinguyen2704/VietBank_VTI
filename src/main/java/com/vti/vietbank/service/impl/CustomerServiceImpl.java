@@ -12,7 +12,6 @@ import com.vti.vietbank.entity.User;
 import com.vti.vietbank.exception.DuplicateResourceException;
 import com.vti.vietbank.exception.ResourceNotFoundException;
 import com.vti.vietbank.repository.CustomerRepository;
-import com.vti.vietbank.repository.RoleRepository;
 import com.vti.vietbank.repository.UserRepository;
 import com.vti.vietbank.service.CustomerService;
 import com.vti.vietbank.service.IRoleService;
@@ -36,7 +35,6 @@ import java.util.List;
 public class CustomerServiceImpl implements CustomerService {
 
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
     private final CustomerRepository customerRepository;
     private final PasswordEncoder passwordEncoder;
     private final IUserService iUserService;
@@ -56,7 +54,7 @@ public class CustomerServiceImpl implements CustomerService {
 
         User user = new User();
         user.setPhoneNumber(request.getPhoneNumber());
-        user.setPassword(passwordEncoder.encode((request.getPassword()))); // TODO: encode later when adding security
+        user.setPassword(passwordEncoder.encode((request.getPassword())));
         user.setRole(role);
 
         user = userRepository.save(user);

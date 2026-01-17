@@ -47,7 +47,7 @@ public class Customer {
     @Column(name = "address")
     private String address;
 
-
+    @Builder.Default
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
 

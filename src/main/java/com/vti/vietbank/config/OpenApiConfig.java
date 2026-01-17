@@ -73,7 +73,7 @@ public class OpenApiConfig {
         return GroupedOpenApi.builder()
                 .group("vietbank-api")
                 .pathsToMatch("/api/**")
-                .pathsToExclude("/api/auth/profile") // Exclude problematic endpoint
+                // .pathsToExclude("/api/auth/profile") // Exclude problematic endpoint
                 .packagesToScan("com.vti.vietbank.controller")
                 .packagesToExclude("com.vti.vietbank.exception") // Exclude exception handlers
                 .build();
