@@ -20,10 +20,15 @@ import com.vti.vietbank.service.CustomerService;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.security.core.GrantedAuthority;
+// import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,11 +36,11 @@ public class AuthServiceImpl implements AuthService {
 
     private final CustomUserDetailsService userDetailsService;
     private final JwtTokenProvider jwtTokenProvider;
-    private final UserRepository userRepository;
+    // private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final CustomerService customerService;
     private final TokenBlacklistService tokenBlacklistService;
-
+    // private final AuthenticationManager authenticationManager;
     // private final RoleRepository roleRepository;
     // private final IUserService iUserService;
     // private final IRoleService iRoleService;
@@ -44,12 +49,13 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public ApiResponse<AuthResponse> login(LoginRequest request) {
+        SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         // Get user from database
-        User user = userRepository.findByPhoneNumber(request.getPhoneNumber())
-                .orElseThrow(() -> new ResourceNotFoundException("User", "phoneNumber", request.getPhoneNumber()));
+        // User user = userRepository.findByPhoneNumber(request.getPhoneNumber())
+        //         .orElseThrow(() -> new ResourceNotFoundException("User", "phoneNumber", request.getPhoneNumber()));
 
         // Load user details for Spring Security
-        CustomUserDetails userDetails = new CustomUserDetails(user);
+        CustomUserDetails userDetails = userDetailsService.loadUserByUsername(request.getPhoneNumber());
         if (!passwordEncoder.matches(request.getPassword(), userDetails.getPassword())) {
             return ApiResponse.error("Invalid credentials");
         }
@@ -59,7 +65,7 @@ public class AuthServiceImpl implements AuthService {
         // }
 
         // Generate tokens
-        String accessToken = jwtTokenProvider.generateToken(userDetails, userDetails.getId(), user.getRole().getName());
+        String accessToken = jwtTokenProvider.generateToken(userDetails);
         String refreshToken = jwtTokenProvider.generateRefreshToken(userDetails);
 
         // Store refresh token
@@ -73,7 +79,7 @@ public class AuthServiceImpl implements AuthService {
                 .expiresIn(jwtTokenProvider.getJwtExpiration())
                 .userId(userDetails.getId())
                 .username(userDetails.getUsername())
-                .role(user.getRole().getName())
+                .roles(userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
                 .build();
         System.out.println(jwtTokenProvider.getRoleFromToken(accessToken));
         return ApiResponse.success("Login successful", authResponse);
@@ -93,17 +99,29 @@ public class AuthServiceImpl implements AuthService {
                 return ApiResponse.error("Refresh token not found");
             }
 
-            // Load user details
+            // Load user details (CHỈ 1 LẦN QUERY)
             CustomUserDetails userDetails = userDetailsService.loadUserByUsername(phoneNumber);
-            User user = userRepository.findByPhoneNumber(phoneNumber)
-                    .orElseThrow(() -> new ResourceNotFoundException("User", "phoneNumber", phoneNumber));
 
             // Generate new access token
-            String accessToken = jwtTokenProvider.generateToken(userDetails, user.getId(), user.getRole().getName());
+            String accessToken = jwtTokenProvider.generateToken(userDetails);
 
-            // Create response
-            AuthResponse authResponse = new AuthResponse(accessToken, request.getRefreshToken(), "Bearer",
-                    jwtTokenProvider.getJwtExpiration(), user.getId(), user.getPhoneNumber(), user.getRole().getName());
+            // Lấy role từ authorities
+            // String role = userDetails.getAuthorities().stream()
+            //         .findFirst()
+            //         .map(auth -> auth.getAuthority().replace("ROLE_", ""))
+            //         .orElse("CUSTOMER");
+
+            // Create response (dùng userDetails thay vì query User lần nữa)
+            AuthResponse authResponse = AuthResponse.builder()
+                    .accessToken(accessToken)
+                    .refreshToken(request.getRefreshToken())
+                    .tokenType("Bearer")
+                    .expiresIn(jwtTokenProvider.getJwtExpiration())
+                    .userId(userDetails.getId())
+                    .username(userDetails.getUsername())
+                    .roles(userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority)
+                            .collect(Collectors.toList()))
+                    .build();
 
             return ApiResponse.success("Token refreshed successfully", authResponse);
         } catch (Exception e) {

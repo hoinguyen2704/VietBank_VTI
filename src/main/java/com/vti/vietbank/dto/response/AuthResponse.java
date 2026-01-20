@@ -1,5 +1,8 @@
 package com.vti.vietbank.dto.response;
 
+import java.util.List;
+
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,7 +17,7 @@ public class AuthResponse {
     private Long expiresIn;
     private Long userId;
     private String username;
-    private String role;
+    private List<String> roles;
 
     public AuthResponse() {
         this.tokenType = "Bearer";

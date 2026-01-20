@@ -13,6 +13,7 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
+// import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -23,10 +24,12 @@ public class JwtTokenProvider {
     @Value("${jwt.secret:vietbank-secret-key-for-jwt-token-generation-must-be-at-least-256-bits}")
     private String secret;
 
-    @Value("${jwt.expiration:86400000}") // 24 hours
+    // @Value("${jwt.expiration:120000}") // 2 minutes
+    @Value("${jwt.expiration:86400000}") // 1 day (dev environment)
     private long jwtExpiration;
 
-    @Value("${jwt.refresh-expiration:604800000}") // 7 days
+    // @Value("${jwt.refresh-expiration:3600000}") // 1 hour 
+    @Value("${jwt.refresh-expiration:604800000}") // 1 week (dev environment)
     private long refreshExpiration;
 
     private SecretKey getSigningKey() {
@@ -34,11 +37,15 @@ public class JwtTokenProvider {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String generateToken(CustomUserDetails userDetails, Long userId, String role) {
+    public String generateToken(CustomUserDetails userDetails) {
+        String role = userDetails.getAuthorities().stream()
+                .findFirst()
+                .map(auth -> auth.getAuthority().replace("ROLE_", ""))
+                .orElse("CUSTOMER");
         Map<String, Object> claims = new HashMap<>();
-        claims.put("userId", userId);
-        claims.put("role", role);
+        claims.put("userId", userDetails.getId());
         claims.put("username", userDetails.getUsername());
+        claims.put("role", role);
         return createToken(claims, userDetails.getUsername(), jwtExpiration);
     }
 

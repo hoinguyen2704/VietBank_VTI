@@ -26,6 +26,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import jakarta.persistence.criteria.Predicate;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -224,7 +226,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     private Specification<Customer> createCustomerSpecification(CustomerSearchRequest searchRequest) {
         return (root, query, criteriaBuilder) -> {
-            List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();
+            List<Predicate> predicates = new ArrayList<>();
 
             if (searchRequest.getFullName() != null && !searchRequest.getFullName().isEmpty()) {
                 predicates.add(criteriaBuilder.like(
@@ -257,7 +259,7 @@ public class CustomerServiceImpl implements CustomerService {
             // Exclude deleted customers
             predicates.add(criteriaBuilder.equal(root.get("isDeleted"), false));
 
-            return criteriaBuilder.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
     }
 
