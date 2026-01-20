@@ -6,6 +6,7 @@ import com.vti.vietbank.dto.request.UpdateAccountRequest;
 import com.vti.vietbank.dto.response.AccountResponse;
 import com.vti.vietbank.dto.response.ApiResponse;
 import com.vti.vietbank.dto.response.PageResponse;
+import com.vti.vietbank.entity.enums.AccountStatus;
 import com.vti.vietbank.service.AccountService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -44,15 +46,15 @@ public class AccountController {
         filterRequest.setCustomerId(customerId);
         filterRequest.setAccountTypeId(accountTypeId);
         if (status != null) {
-            filterRequest.setStatus(com.vti.vietbank.entity.enums.AccountStatus.valueOf(status.toUpperCase()));
+            filterRequest.setStatus(AccountStatus.valueOf(status.toUpperCase()));
         }
         filterRequest.setMinBalance(minBalance);
         filterRequest.setMaxBalance(maxBalance);
         if (openedFrom != null) {
-            filterRequest.setOpenedFrom(java.time.LocalDateTime.parse(openedFrom));
+            filterRequest.setOpenedFrom(LocalDateTime.parse(openedFrom));
         }
         if (openedTo != null) {
-            filterRequest.setOpenedTo(java.time.LocalDateTime.parse(openedTo));
+            filterRequest.setOpenedTo(LocalDateTime.parse(openedTo));
         }
         filterRequest.setPage(page);
         filterRequest.setSize(size);

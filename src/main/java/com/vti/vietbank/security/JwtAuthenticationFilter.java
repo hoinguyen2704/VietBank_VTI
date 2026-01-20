@@ -48,6 +48,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 CustomUserDetails userDetails = userDetailsService.loadUserByUsername(phoneNumber);
 
                 if (jwtTokenProvider.validateToken(jwt, userDetails)) {
+                    userDetails.eraseCredentials(); // Xóa mật khẩu khỏi object để tránh lưu mật khẩu trong bộ nhớ
+                    // Lưu thông tin người dùng vào SecurityContext
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,
@@ -62,6 +64,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 } else {
                     logger.error("Token validation failed for user: " + phoneNumber);
+                    SecurityContextHolder.clearContext();
                 }
             }
         } catch (Exception e) {
