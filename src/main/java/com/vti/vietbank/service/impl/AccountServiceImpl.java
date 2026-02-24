@@ -8,6 +8,7 @@ import com.vti.vietbank.dto.response.ApiResponse;
 import com.vti.vietbank.dto.response.PageResponse;
 import com.vti.vietbank.entity.Account;
 import com.vti.vietbank.entity.AccountType;
+import com.vti.vietbank.entity.Account_;
 import com.vti.vietbank.entity.Customer;
 import com.vti.vietbank.entity.enums.AccountStatus;
 import com.vti.vietbank.exception.DuplicateResourceException;
@@ -18,11 +19,14 @@ import com.vti.vietbank.repository.CustomerRepository;
 import com.vti.vietbank.security.CustomUserDetails;
 import com.vti.vietbank.service.AccountService;
 import com.vti.vietbank.service.CustomerService;
+import com.vti.vietbank.specification.AccountSpecs;
 import com.vti.vietbank.util.AccountNameGenerator;
 import com.vti.vietbank.util.AccountResolver;
 import jakarta.transaction.Transactional;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -36,6 +40,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
@@ -86,8 +91,7 @@ public class AccountServiceImpl implements AccountService {
                 account.getOpenedDate(),
                 account.getClosedDate(),
                 account.getCreateAt(),
-                account.getUpdateAt()
-        );
+                account.getUpdateAt());
         return ApiResponse.success("Account opened", response);
     }
 
@@ -110,8 +114,7 @@ public class AccountServiceImpl implements AccountService {
                 account.getOpenedDate(),
                 account.getClosedDate(),
                 account.getCreateAt(),
-                account.getUpdateAt()
-        );
+                account.getUpdateAt());
         return ApiResponse.success(response);
     }
 
@@ -122,10 +125,8 @@ public class AccountServiceImpl implements AccountService {
 
         // Tạo Pageable cho pagination và sorting
         Sort sort = Sort.by(
-                filterRequest.getSortDirection().equalsIgnoreCase("desc") ?
-                        Sort.Direction.DESC : Sort.Direction.ASC,
-                filterRequest.getSortBy()
-        );
+                filterRequest.getSortDirection().equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC,
+                filterRequest.getSortBy());
         Pageable pageable = PageRequest.of(filterRequest.getPage(), filterRequest.getSize(), sort);
 
         // Thực hiện query với pagination
@@ -144,60 +145,63 @@ public class AccountServiceImpl implements AccountService {
                 accountPage.getTotalElements(),
                 accountPage.getTotalPages(),
                 accountPage.isFirst(),
-                accountPage.isLast()
-        );
+                accountPage.isLast());
 
         return ApiResponse.success(pageResponse);
     }
 
     private Specification<Account> createAccountSpecification(AccountFilterRequest filterRequest) {
         return (root, query, criteriaBuilder) -> {
-            List<Predicate> predicates = new ArrayList<>();
+            Specification<Account> combinedSpec = Specification.anyOf();
 
             if (filterRequest.getAccountNumber() != null && !filterRequest.getAccountNumber().isEmpty()) {
-                predicates.add(criteriaBuilder.like(
-                        criteriaBuilder.lower(root.get("accountNumber")),
-                        "%" + filterRequest.getAccountNumber().toLowerCase() + "%"
-                ));
+                Specification<Account> currentSpecs = AccountSpecs.hasAccountNumber(filterRequest.getAccountNumber());
+                combinedSpec.and(currentSpecs);
             }
 
             if (filterRequest.getAccountName() != null && !filterRequest.getAccountName().isEmpty()) {
-                predicates.add(criteriaBuilder.like(
-                        criteriaBuilder.lower(root.get("accountName")),
-                        "%" + filterRequest.getAccountName().toLowerCase() + "%"
-                ));
+                Specification<Account> currentSpecs = AccountSpecs.hasAccountName(filterRequest.getAccountName());
+                combinedSpec.and(currentSpecs);
             }
 
             if (filterRequest.getCustomerId() != null) {
-                predicates.add(criteriaBuilder.equal(root.get("customer").get("id"), filterRequest.getCustomerId()));
+                Specification<Account> currentSpecs = AccountSpecs.hasCustomerId(filterRequest.getCustomerId());
+                combinedSpec.and(currentSpecs);
             }
 
             if (filterRequest.getAccountTypeId() != null) {
-                predicates.add(criteriaBuilder.equal(root.get("accountType").get("id"), filterRequest.getAccountTypeId()));
+                Specification<Account> currentSpecs = AccountSpecs.hasAccountTypeId(filterRequest.getAccountTypeId());
+                combinedSpec.and(currentSpecs);
             }
 
             if (filterRequest.getStatus() != null) {
-                predicates.add(criteriaBuilder.equal(root.get("status"), filterRequest.getStatus()));
+                Specification<Account> currentSpecs = AccountSpecs.hasStatus(filterRequest.getStatus());
+                combinedSpec.and(currentSpecs);
             }
 
             if (filterRequest.getMinBalance() != null) {
-                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("balance"), filterRequest.getMinBalance()));
+                Specification<Account> currentSpecs = AccountSpecs.hasMinBalance(filterRequest.getMinBalance());
+                combinedSpec.and(currentSpecs);
             }
 
             if (filterRequest.getMaxBalance() != null) {
-                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("balance"), filterRequest.getMaxBalance()));
+                Specification<Account> currentSpecs = AccountSpecs.hasMaxBalance(filterRequest.getMaxBalance());
+                combinedSpec.and(currentSpecs);
             }
 
             if (filterRequest.getOpenedFrom() != null) {
-                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("openedDate"), filterRequest.getOpenedFrom()));
+                Specification<Account> currentSpecs = AccountSpecs.openedFrom(filterRequest.getOpenedFrom());
+                combinedSpec.and(currentSpecs);
             }
 
             if (filterRequest.getOpenedTo() != null) {
-                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("openedDate"), filterRequest.getOpenedTo()));
+                Specification<Account> currentSpecs = AccountSpecs.openedTo(filterRequest.getOpenedTo());
+                combinedSpec.and(currentSpecs);
             }
 
-            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+            return combinedSpec.toPredicate(root, query, criteriaBuilder);
         };
+
     }
 
     private AccountResponse convertToAccountResponse(Account account) {
@@ -212,8 +216,7 @@ public class AccountServiceImpl implements AccountService {
                 account.getOpenedDate(),
                 account.getClosedDate(),
                 account.getCreateAt(),
-                account.getUpdateAt()
-        );
+                account.getUpdateAt());
     }
 
     @Override
@@ -278,5 +281,3 @@ public class AccountServiceImpl implements AccountService {
         return ApiResponse.success(account.getBalance());
     }
 }
-
-

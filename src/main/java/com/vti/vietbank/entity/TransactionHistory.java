@@ -9,6 +9,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -47,6 +48,7 @@ public class TransactionHistory {
     @JoinColumn(name = "related_account_id", referencedColumnName = "id")
     private Account related_account_id;
 
+    // id của giao dịch liên quan
     @Column(name = "related_transaction_id")
     private Long related_transaction_id;
 

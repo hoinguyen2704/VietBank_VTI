@@ -21,15 +21,17 @@ import java.util.function.Function;
 @Data
 public class JwtTokenProvider {
 
-    @Value("${jwt.secret:vietbank-secret-key-for-jwt-token-generation-must-be-at-least-256-bits}")
+    @Value("${spring.security.secret-key}")
     private String secret;
 
     // @Value("${jwt.expiration:120000}") // 2 minutes
-    @Value("${jwt.expiration:86400000}") // 1 day (dev environment)
+    // @Value("${jwt.expiration:86400000}") // 1 day (dev environment)
+    @Value("${spring.security.jwt-expiration}")
     private long jwtExpiration;
 
-    // @Value("${jwt.refresh-expiration:3600000}") // 1 hour 
-    @Value("${jwt.refresh-expiration:604800000}") // 1 week (dev environment)
+    // @Value("${jwt.refresh-expiration:3600000}") // 1 hour
+    // @Value("${jwt.refresh-expiration:604800000}") // 1 week (dev environment)
+    @Value("${spring.security.refresh-token-expiration}")
     private long refreshExpiration;
 
     private SecretKey getSigningKey() {
