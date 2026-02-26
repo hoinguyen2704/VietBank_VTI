@@ -1,71 +1,114 @@
 package com.vti.vietbank.security;
 
+import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
+
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.vti.vietbank.entity.User;
 
+import lombok.Builder;
 import lombok.Getter;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 @Getter
-public class CustomUserDetails extends User {
-    private final long id;
+@Builder
+public class CustomUserDetails implements UserDetails, CredentialsContainer {
+    private static final long serialVersionUID = 1L;
 
-    // Ẩn password khỏi JSON response
+    private Long id;
+    private String username;
+
+    @JsonIgnore
+    private String password;
+
+    private Collection<? extends GrantedAuthority> authorities;
+
+    private boolean enabled;
+    private boolean accountNonLocked;
+
+    public CustomUserDetails(Long id, String username, String password,
+                           Collection<? extends GrantedAuthority> authorities,
+                           boolean enabled, boolean accountNonLocked) {
+        this.id = id;
+        this.username = username;
+        this.password = password;
+        this.authorities = authorities;
+        this.enabled = enabled;
+        this.accountNonLocked = accountNonLocked;
+    }
+
+    public static CustomUserDetails build(User user) {
+        String roleName = "CUSTOMER";
+        if (user.getRole() != null) {
+            roleName = user.getRole().getName();
+        }
+        List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + roleName));
+        return CustomUserDetails.builder()
+                .id(user.getId())
+                .username(user.getPhoneNumber())
+                .password(user.getPassword())
+                .authorities(authorities)
+                .enabled(true)
+                .accountNonLocked(true)
+                .build();
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return authorities;
+    }
+
     @Override
     @JsonIgnore
     public String getPassword() {
-        return super.getPassword();
+        return password;
     }
 
-    public CustomUserDetails(long id, String username, String password,
-            Collection<? extends GrantedAuthority> authorities) {
-        super(username, password, authorities);
-        this.id = id;
+    @Override
+    public String getUsername() {
+        return username;
     }
 
-    public CustomUserDetails(com.vti.vietbank.entity.User user) {
-        super(user.getPhoneNumber(), user.getPassword(),
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().getName())));
-        this.id = user.getId();
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
     }
 
-    public static CustomUserDetailsBuilder customBuilder() {
-        return new CustomUserDetailsBuilder();
+    @Override
+    public boolean isAccountNonLocked() {
+        return accountNonLocked;
     }
 
-    public static class CustomUserDetailsBuilder {
-        private long id;
-        private String username;
-        private String password;
-        private Collection<? extends GrantedAuthority> authorities;
-
-        public CustomUserDetailsBuilder id(long id) {
-            this.id = id;
-            return this;
-        }
-
-        public CustomUserDetailsBuilder username(String username) {
-            this.username = username;
-            return this;
-        }
-
-        public CustomUserDetailsBuilder password(String password) {
-            this.password = password;
-            return this;
-        }
-
-        public CustomUserDetailsBuilder authorities(Collection<? extends GrantedAuthority> authorities) {
-            this.authorities = authorities;
-            return this;
-        }
-
-        public CustomUserDetails build() {
-            return new CustomUserDetails(id, username, password, authorities);
-        }
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
     }
+
+    @Override
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        CustomUserDetails user = (CustomUserDetails) o;
+        return Objects.equals(id, user.id);
+    }
+
+    @Override
+    public void eraseCredentials() {
+        this.password = null;
+    }
+    
 }

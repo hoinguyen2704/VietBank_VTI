@@ -13,7 +13,8 @@ class CustomUserDetailsTest {
     @BeforeEach
     void setUp() {
         customUserDetails = new CustomUserDetails(1L, "testUser", "password",
-                Set.of(new SimpleGrantedAuthority("ROLE_CUSTOMER"), new SimpleGrantedAuthority("ROLE_ADMIN")));
+                Set.of(new SimpleGrantedAuthority("ROLE_CUSTOMER"), new SimpleGrantedAuthority("ROLE_ADMIN")),
+                true, true);
     }
 
     @Test

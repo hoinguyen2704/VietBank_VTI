@@ -18,6 +18,10 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
   main:
     allow-circular-references: true
+  security:
+    secret-key: ${SECRET_KEY:vietbank-secret-key-for-jwt-token-generation-must-be-at-least-256-bits}
+    jwt-expiration: ${JWT_EXPIRATION:86400000}
+    refresh-token-expiration: ${REFRESH_TOKEN_EXPIRATION:604800000}
 
 logging:
   level:
@@ -50,3 +54,4 @@ springdoc:
   use-management-port: false
   show-actuator: false
   writer-with-default-pretty-printer: true
+

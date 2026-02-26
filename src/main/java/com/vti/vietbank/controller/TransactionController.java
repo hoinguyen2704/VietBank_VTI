@@ -18,10 +18,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController
 @RequestMapping("/api/transactions")
-@RequiredArgsConstructor
 @PreAuthorize("hasRole('CUSTOMER')")
+@RestController
+@RequiredArgsConstructor
 public class TransactionController {
 
     private final TransactionService transactionService;
@@ -76,7 +76,9 @@ public class TransactionController {
      * Tìm kiếm transaction history với đầy đủ thông tin từ nhiều bảng
      */
     @GetMapping("/search")
+    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN', 'CUSTOMER')")
     public ResponseEntity<ApiResponse<PageResponse<TransactionDetailResponse>>> searchComplexTransactions(
+            // @ModelAttribute TransactionComplexSearchRequest searchRequest
             @RequestParam(required = false) String customerName,
             @RequestParam(required = false) String customerPhone,
             @RequestParam(required = false) String citizenId,
@@ -94,7 +96,7 @@ public class TransactionController {
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(defaultValue = "created_at") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDirection) {
-        
+
         TransactionComplexSearchRequest searchRequest = new TransactionComplexSearchRequest();
         searchRequest.setCustomerName(customerName);
         searchRequest.setCustomerPhone(customerPhone);
@@ -103,7 +105,8 @@ public class TransactionController {
         searchRequest.setAccountId(accountId);
         searchRequest.setRelatedAccountNumber(relatedAccountNumber);
         if (transactionType != null) {
-            searchRequest.setTransactionType(com.vti.vietbank.entity.enums.TransactionType.valueOf(transactionType.toUpperCase()));
+            searchRequest.setTransactionType(
+                    com.vti.vietbank.entity.enums.TransactionType.valueOf(transactionType.toUpperCase()));
         }
         searchRequest.setTransactionCode(transactionCode);
         searchRequest.setMinAmount(minAmount);
@@ -119,7 +122,6 @@ public class TransactionController {
         searchRequest.setSize(size);
         searchRequest.setSortBy(sortBy);
         searchRequest.setSortDirection(sortDirection);
-        
         return ResponseEntity.ok(transactionService.searchComplexTransactions(searchRequest));
     }
 }
